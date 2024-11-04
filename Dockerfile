@@ -10,7 +10,7 @@ RUN pip install -r requirements.txt
 ADD config/ config/
 ADD scripts/ scripts/
 
-RUN python scripts/download_resources.py config/build-config.yml
+RUN python scripts/download_resources.py config/build-config.yml assets artifacts
 
 RUN python scripts/extract_game_info.py assets pre_filter
 RUN rm -rf assets

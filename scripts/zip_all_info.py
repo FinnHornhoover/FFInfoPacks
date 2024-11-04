@@ -16,10 +16,10 @@ def main(config_path: Path, in_root: Path, out_root: Path):
     for in_dir in tqdm(in_dirs):
         build = in_dir.name
         build_config = config[build]
-        nickname = build_config.get("nickname", "unnamed")
+        nickname = f"_{build_config['nickname']}" if "nickname" in build_config else ""
         revision = build_config["revision"]
 
-        out_path = out_root / f"{nickname}_{build}_r{revision}"
+        out_path = out_root / f"{build}_r{revision}{nickname}"
 
         shutil.make_archive(out_path, "zip", in_dir)
 
