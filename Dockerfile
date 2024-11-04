@@ -9,17 +9,21 @@ RUN pip install -r requirements.txt
 
 COPY config/ config/
 COPY scripts/ scripts/
+
 RUN python scripts/download_resources.py config/build-config.yml
+
 RUN python scripts/extract_game_info.py assets pre_filter
 RUN rm -rf assets
-RUN python scripts/filter_game_info.py config pre_filter output_all output_released
+
+RUN python scripts/filter_game_info.py config pre_filter output output_released
 RUN rm -rf pre_filter
-RUN python scripts/extract_derived_info.py output_all
-RUN python scripts/extract_derived_info.py output_released
+
+RUN python scripts/extract_derived_info.py output output/info
+RUN python scripts/extract_derived_info.py output_released output/info_released
+RUN rm -rf output_released
 
 RUN mkdir -p artifacts
-RUN cd output_all && for i in */; do zip -r "../artifacts/${i%/}_all.zip" "$i"; done
-RUN cd output_released && for i in */; do zip -r "../artifacts/${i%/}_released.zip" "$i"; done
-RUN rm -rf output_all output_released
+RUN cd output && for i in */; do zip -rq "../artifacts/${i%/}.zip" "$i"; done
+RUN rm -rf output
 
 CMD ["bash"]
