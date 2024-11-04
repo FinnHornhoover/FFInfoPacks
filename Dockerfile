@@ -23,8 +23,7 @@ RUN rm -rf pre_filter
 RUN python scripts/extract_derived_info.py output output_released
 RUN rm -rf output_released
 
-ADD zip-builds.sh .
-RUN bash zip-builds.sh
+RUN python scripts/zip_all_info.py config/build-config.yml output artifacts
 RUN rm -rf output
 
 CMD ["bash"]
