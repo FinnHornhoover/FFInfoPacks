@@ -3,12 +3,14 @@ FROM python:bookworm
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y git zip
+RUN wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+RUN chmod +x /usr/local/bin/yq
 
-COPY requirements.txt .
+ADD requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY config/ config/
-COPY scripts/ scripts/
+ADD config/ config/
+ADD scripts/ scripts/
 
 RUN python scripts/download_resources.py config/build-config.yml
 
@@ -18,12 +20,11 @@ RUN rm -rf assets
 RUN python scripts/filter_game_info.py config pre_filter output output_released
 RUN rm -rf pre_filter
 
-RUN python scripts/extract_derived_info.py output output/info
-RUN python scripts/extract_derived_info.py output_released output/info_released
+RUN python scripts/extract_derived_info.py output output_released
 RUN rm -rf output_released
 
-RUN mkdir -p artifacts
-RUN cd output && for i in */; do zip -rq "../artifacts/${i%/}.zip" "$i"; done
+ADD zip-builds.sh .
+RUN bash zip-builds.sh
 RUN rm -rf output
 
 CMD ["bash"]

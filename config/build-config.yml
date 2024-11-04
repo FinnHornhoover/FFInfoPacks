@@ -1,6 +1,7 @@
 config:
   retrobution:
     revision: 1 # Increment this when the resources change
+    nickname: retrobution
     url: http://www.nanocom.link/assets/
     resources:
       - TableData.resourceFile
