@@ -1,0 +1,765 @@
+areas:
+  step_area_data:
+    ids:
+      from: areas
+      filter:
+        - by: <area_include>
+          values: <excluded_ids>
+      map:
+        - key: <index>
+    exclude:
+      from: areas
+      matching: <index>
+instance:
+  step_instance_data:
+    ids:
+      from: xdt.m_pInstanceTable.m_pWarpData
+      filter:
+        - by: m_iToMapNum
+          values: <excluded_ids>
+      map:
+        - key: m_iToMapNum
+    exclude:
+      from: xdt.m_pInstanceTable.m_pInstanceData
+      matching: <index>
+  step_warp_data:
+    ids:
+      from: xdt.m_pInstanceTable.m_pWarpData
+      filter:
+        - by: m_iToMapNum
+          values: step_instance_data.ids
+      map:
+        - key: m_iWarpNumber
+          register_usages_by: m_iToMapNum
+    exclude:
+      from: xdt.m_pInstanceTable.m_pWarpData
+      matching: m_iWarpNumber
+  step_warp_name_data:
+    ids:
+      from: xdt.m_pInstanceTable.m_pWarpData
+      filter:
+        - by: m_iToMapNum
+          values: step_instance_data.ids
+      map:
+        - key: m_iToMapNum
+    exclude:
+      from: xdt.m_pInstanceTable.m_pWarpNameData
+      matching: <index>
+  step_xcom_data:
+    ids:
+      from: xdt.m_pInstanceTable.m_pWarpData
+      filter:
+        - by: m_iToMapNum
+          values: step_instance_data.ids
+      map:
+        - key: m_iToMapNum
+    exclude:
+      from: xdt.m_pXComTable.m_pXComData
+      matching: m_iZone
+  step_npcs:
+    run_steps: npc
+    override:
+      step_npc_data:
+        ids:
+          from: xdt.m_pInstanceTable.m_pWarpData
+          filter:
+            - by: m_iToMapNum
+              values: step_instance_data.ids
+          map:
+            - key: m_iNpcNumber
+  step_mission_specific_tasks:
+    ids:
+      from: xdt.m_pInstanceTable.m_pWarpData
+      filter:
+        - by: m_iToMapNum
+          values: step_instance_data.ids
+      map:
+        - key: m_iLimit_TaskID
+    exclude:
+      from: xdt.m_pMissionTable.m_pMissionData
+      matching: m_iHTaskID
+  step_missions:
+    run_steps: mission
+    override:
+      step_mission_data:
+        ids:
+          from: xdt.m_pMissionTable.m_pMissionData
+          filter:
+            - by: m_iHTaskID
+              values: step_mission_specific_tasks.ids
+          map:
+            - key: m_iHMissionID
+mission:
+  step_mission_data:
+    ids:
+      from: xdt.m_pMissionTable.m_pMissionData
+      filter:
+        - by: m_iHMissionID
+          values: <excluded_ids>
+      map:
+        - key: m_iHMissionID
+    exclude:
+      from: xdt.m_pMissionTable.m_pMissionData
+      matching: m_iHMissionID
+  step_mission_string_data:
+    ids:
+      from: xdt.m_pMissionTable.m_pMissionData
+      filter:
+        - by: m_iHMissionID
+          values: step_mission_data.ids
+      map:
+        - key: m_iHMissionName
+        - key: m_iHCurrentObjective
+          register_usages_by: m_iHTaskID
+        - key: m_iSTMessageTextID
+          register_usages_by: m_iHTaskID
+        - key: m_iSTDialogBubble
+          register_usages_by: m_iHTaskID
+        - key: m_iSUMessagetextID
+          register_usages_by: m_iHTaskID
+        - key: m_iSUDialogBubble
+          register_usages_by: m_iHTaskID
+        - key: m_iFMessageTextID
+          register_usages_by: m_iHTaskID
+        - key: m_iFDialogBubble
+          register_usages_by: m_iHTaskID
+    exclude:
+      from: xdt.m_pMissionTable.m_pMissionStringData
+      matching: <index>
+  step_journal_data:
+    ids:
+      from: xdt.m_pMissionTable.m_pMissionData
+      filter:
+        - by: m_iHMissionID
+          values: step_mission_data.ids
+      map:
+        - key: m_iSTJournalIDAdd
+          register_usages_by: m_iHTaskID
+        - key: m_iSUJournaliDAdd
+          register_usages_by: m_iHTaskID
+        - key: m_iFJournalIDAdd
+          register_usages_by: m_iHTaskID
+    exclude:
+      from: xdt.m_pMissionTable.m_pJournalData
+      matching: <index>
+  step_journal_string_data:
+    ids:
+      from: xdt.m_pMissionTable.m_pJournalData
+      filter:
+        - by: <index>
+          values: step_journal_data.ids
+      map:
+        - key: m_iMissionSummary
+        - key: m_iDetaileMissionDesc
+        - key: m_iMissionCompleteSummary
+        - key: m_iDetaileMissionCompleteSummary
+        - key: m_iTaskSummary
+        - key: m_iDetailedTaskDesc
+    exclude:
+      from: xdt.m_pMissionTable.m_pMissionStringData
+      matching: <index>
+  step_reward_data:
+    ids:
+      from: xdt.m_pMissionTable.m_pMissionData
+      filter:
+        - by: m_iHMissionID
+          values: step_mission_data.ids
+      map:
+        - key: m_iSUReward
+          register_usages_by: m_iHTaskID
+    exclude:
+      from: xdt.m_pMissionTable.m_pRewardData
+      matching: m_iMissionRewardID
+  step_questitem_data:
+    ids:
+      from: xdt.m_pMissionTable.m_pMissionData
+      filter:
+        - by: m_iHMissionID
+          values: step_mission_data.ids
+      map:
+        - key: m_iCSTItemID
+          register_usages_by: m_iHTaskID
+        - key: m_iCSUItemID
+          register_usages_by: m_iHTaskID
+        - key: m_iSTItemID
+          register_usages_by: m_iHTaskID
+        - key: m_iSUItem
+          register_usages_by: m_iHTaskID
+        - key: m_iFItemID
+          register_usages_by: m_iHTaskID
+        - key: m_iDelItemID
+          register_usages_by: m_iHTaskID
+    exclude:
+      from: xdt.m_pQuestItemTable.m_pItemData
+      matching: m_iItemNumber
+  step_questitem_string_data:
+    ids:
+      from: xdt.m_pQuestItemTable.m_pItemData
+      filter:
+        - by: m_iItemNumber
+          values: step_questitem_data.ids
+      map:
+        - key: m_iItemName
+          register_usages_by: m_iItemNumber
+        - key: m_iComment
+          register_usages_by: m_iItemNumber
+    exclude:
+      from: xdt.m_pQuestItemTable.m_pItemStringData
+      matching: <index>
+nano:
+  step_nano_data:
+    ids:
+      from: xdt.m_pNanoTable.m_pNanoData
+      filter:
+        - by: m_iNanoNumber
+          values: <excluded_ids>
+      map:
+        - key: m_iNanoNumber
+    exclude:
+      from: xdt.m_pNanoTable.m_pNanoData
+      matching: m_iNanoNumber
+  step_nano_string_data:
+    ids:
+      from: xdt.m_pNanoTable.m_pNanoData
+      filter:
+        - by: m_iNanoNumber
+          values: step_nano_data.ids
+      map:
+        - key: m_iNanoName
+          register_usages_by: m_iNanoNumber
+        - key: m_iComment
+          register_usages_by: m_iNanoNumber
+    exclude:
+      from: xdt.m_pNanoTable.m_pNanoStringData
+      matching: <index>
+  step_nano_mesh_data:
+    ids:
+      from: xdt.m_pNanoTable.m_pNanoData
+      filter:
+        - by: m_iNanoNumber
+          values: step_nano_data.ids
+      map:
+        - key: m_iMesh
+          register_usages_by: m_iNanoNumber
+    exclude:
+      from: xdt.m_pNanoTable.m_pNanoMeshData
+      matching: <index>
+  step_nano_icon_data:
+    ids:
+      from: xdt.m_pNanoTable.m_pNanoData
+      filter:
+        - by: m_iNanoNumber
+          values: step_nano_data.ids
+      map:
+        - key: m_iIcon1
+          register_usages_by: m_iNanoNumber
+    exclude:
+      from: xdt.m_pNanoTable.m_pNanoIconData
+      matching: <index>
+  step_nano_icons:
+    ids:
+      from: xdt.m_pNanoTable.m_pNanoIconData
+      filter:
+        - by: <index>
+          values: step_nano_icon_data.ids
+      map:
+        - key: <nano_icon_file>
+    exclude:
+      from: <icon_dir>
+  step_nano_tune_data:
+    ids:
+      from: xdt.m_pNanoTable.m_pNanoData
+      filter:
+        - by: m_iNanoNumber
+          values: step_nano_data.ids
+      map:
+        - key: m_iTune
+          register_usages_by: m_iNanoNumber
+    exclude:
+      from: xdt.m_pNanoTable.m_pNanoTuneData
+      matching: <index>
+  step_nano_tune_string_data:
+    ids:
+      from: xdt.m_pNanoTable.m_pNanoTuneData
+      filter:
+        - by: m_iTuneNumber
+          values: step_nano_tune_data.ids
+      map:
+        - key: m_iTuneName
+          register_usages_by: m_iTuneNumber
+        - key: m_iComment
+          register_usages_by: m_iTuneNumber
+    exclude:
+      from: xdt.m_pNanoTable.m_pNanoTuneStringData
+      matching: <index>
+  step_skill_data:
+    ids:
+      from: xdt.m_pNanoTable.m_pNanoTuneData
+      filter:
+        - by: m_iTuneNumber
+          values: step_nano_tune_data.ids
+      map:
+        - key: m_iSkillID
+          register_usages_by: m_iTuneNumber
+    exclude:
+      from: xdt.m_pSkillTable.m_pSkillData
+      matching: m_iSkillNumber
+  step_skill_buff_data:
+    ids:
+      from: xdt.m_pSkillTable.m_pSkillData
+      filter:
+        - by: m_iSkillNumber
+          values: step_skill_data.ids
+      map:
+        - key: m_iSkillType
+          register_usages_by: m_iSkillNumber
+    exclude:
+      from: xdt.m_pSkillTable.m_pSkillBuffData
+      matching: m_iBuffNumber
+  step_nano_tune_icon_data:
+    ids:
+      from: xdt.m_pSkillTable.m_pSkillData
+      filter:
+        - by: m_iSkillNumber
+          values: step_skill_data.ids
+      map:
+        - key: m_iIcon
+          register_usages_by: m_iSkillNumber
+    exclude:
+      from: xdt.m_pNanoTable.m_pNanoTuneIconData
+      matching: <index>
+  step_nano_tune_icons:
+    ids:
+      from: xdt.m_pNanoTable.m_pNanoTuneIconData
+      filter:
+        - by: <index>
+          values: step_nano_tune_icon_data.ids
+      map:
+        - key: <skill_icon_file>
+    exclude:
+      from: <icon_dir>
+  step_skill_string_data:
+    ids:
+      from: xdt.m_pSkillTable.m_pSkillData
+      filter:
+        - by: m_iSkillNumber
+          values: step_skill_data.ids
+      map:
+        - key: m_iSkillNumber
+    exclude:
+      from: xdt.m_pSkillTable.m_pSkillStringData
+      matching: <index>
+  step_missions:
+    run_steps: mission
+    override:
+      step_mission_data:
+        ids:
+          from: xdt.m_pMissionTable.m_pMissionData
+          filter:
+            - by: m_iSTNanoID
+              values: step_nano_data.ids
+          map:
+            - key: m_iHMissionID
+npc:
+  step_npc_data:
+    ids:
+      from: xdt.m_pNpcTable.m_pNpcData
+      filter:
+        - by: m_iNpcNumber
+          values: <excluded_ids>
+      map:
+        - key: m_iNpcNumber
+    exclude:
+      from: xdt.m_pNpcTable.m_pNpcData
+      matching: m_iNpcNumber
+  step_npc_string_data:
+    ids:
+      from: xdt.m_pNpcTable.m_pNpcData
+      filter:
+        - by: m_iNpcNumber
+          values: step_npc_data.ids
+      map:
+        - key: m_iNpcName
+          register_usages_by: m_iNpcNumber
+        - key: m_iComment
+          register_usages_by: m_iNpcNumber
+    exclude:
+      from: xdt.m_pNpcTable.m_pNpcStringData
+      matching: <index>
+  step_npc_mesh_data:
+    ids:
+      from: xdt.m_pNpcTable.m_pNpcData
+      filter:
+        - by: m_iNpcNumber
+          values: step_npc_data.ids
+      map:
+        - key: m_iMesh
+          register_usages_by: m_iNpcNumber
+    exclude:
+      from: xdt.m_pNpcTable.m_pNpcMeshData
+      matching: <index>
+  step_npc_icon_data:
+    ids:
+      from: xdt.m_pNpcTable.m_pNpcData
+      filter:
+        - by: m_iNpcNumber
+          values: step_npc_data.ids
+      map:
+        - key: m_iIcon1
+          register_usages_by: m_iNpcNumber
+    exclude:
+      from: xdt.m_pNpcTable.m_pNpcIconData
+      matching: <index>
+  step_npc_icons:
+    ids:
+      from: xdt.m_pNpcTable.m_pNpcIconData
+      filter:
+        - by: <index>
+          values: step_npc_icon_data.ids
+      map:
+        - key: <npc_icon_file>
+    exclude:
+      from: <icon_dir>
+  step_npc_barker_data:
+    ids:
+      from: xdt.m_pNpcTable.m_pNpcData
+      filter:
+        - by: m_iNpcNumber
+          values: step_npc_data.ids
+      map:
+        - key: m_iBarkerNumber
+          register_usages_by: m_iNpcNumber
+    exclude:
+      from: xdt.m_pNpcTable.m_pNpcBarkerData
+      matching: <index>
+  step_npc_service_data:
+    ids:
+      from: xdt.m_pNpcTable.m_pNpcData
+      filter:
+        - by: m_iNpcNumber
+          values: step_npc_data.ids
+      map:
+        - key: m_iServiceNumber
+          register_usages_by: m_iNpcNumber
+    exclude:
+      from: xdt.m_pNpcTable.m_pNpcServiceData
+      matching: iMember
+  step_vendor_item_data:
+    ids:
+      from: xdt.m_pVendorTable.m_pItemData
+      filter:
+        - by: m_iNpcNumber
+          values: step_npc_data.ids
+      map:
+        - key: m_iNpcNumber
+    exclude:
+      from: xdt.m_pVendorTable.m_pItemData
+      matching: m_iNpcNumber
+shiny:
+  step_shiny_data:
+    ids:
+      from: xdt.m_pShinyTable.m_pShinyData
+      filter:
+        - by: m_iShinyID
+          values: <excluded_ids>
+      map:
+        - key: m_iShinyID
+    exclude:
+      from: xdt.m_pShinyTable.m_pShinyData
+      matching: m_iShinyID
+  step_shiny_string_data:
+    ids:
+      from: xdt.m_pShinyTable.m_pShinyData
+      filter:
+        - by: m_iShinyID
+          values: step_shiny_data.ids
+      map:
+        - key: m_iShinyName
+          register_usages_by: m_iShinyID
+    exclude:
+      from: xdt.m_pShinyTable.m_pShinyStringData
+      matching: <index>
+  step_shiny_mesh_data:
+    ids:
+      from: xdt.m_pShinyTable.m_pShinyData
+      filter:
+        - by: m_iShinyID
+          values: step_shiny_data.ids
+      map:
+        - key: m_iMesh
+          register_usages_by: m_iShinyID
+    exclude:
+      from: xdt.m_pShinyTable.m_pShinyMeshData
+      matching: <index>
+transportation:
+  step_transportation_data:
+    ids:
+      from: xdt.m_pTransportationTable.m_pTransportationData
+      filter:
+        - by: m_iVehicleID
+          values: <excluded_ids>
+      map:
+        - key: m_iVehicleID
+    exclude:
+      from: xdt.m_pTransportationTable.m_pTransportationData
+      matching: m_iVehicleID
+  step_transportation_mesh_data:
+    ids:
+      from: xdt.m_pTransportationTable.m_pTransportationData
+      filter:
+        - by: m_iVehicleID
+          values: step_transportation_data.ids
+      map:
+        - key: m_iMesh
+          register_usages_by: m_iVehicleID
+    exclude:
+      from: xdt.m_pTransportationTable.m_pTransportationMeshData
+      matching: <index>
+  step_transportation_warp_location:
+    ids:
+      from: xdt.m_pTransportationTable.m_pTransportationData
+      filter:
+        - by: m_iVehicleID
+          values: step_transportation_data.ids
+        - by: m_iMoveType
+          values: [1]
+      map:
+        - key: m_iStartLocation
+          register_usages_by: m_iVehicleID
+        - key: m_iEndLocation
+          register_usages_by: m_iVehicleID
+    exclude:
+      from: xdt.m_pTransportationTable.m_pTransportationWarpLocation
+      matching: m_iLocationID
+  step_transportation_warp_string:
+    ids:
+      from: xdt.m_pTransportationTable.m_pTransportationWarpLocation
+      filter:
+        - by: m_iLocationID
+          values: step_transportation_warp_location.ids
+      map:
+        - key: m_iLocationID
+    exclude:
+      from: xdt.m_pTransportationTable.m_pTransportationWarpString
+      matching: <index>
+  step_broomstick_location:
+    ids:
+      from: xdt.m_pTransportationTable.m_pTransportationData
+      filter:
+        - by: m_iVehicleID
+          values: step_transportation_data.ids
+        - by: m_iMoveType
+          values: [2]
+      map:
+        - key: m_iStartLocation
+          register_usages_by: m_iVehicleID
+        - key: m_iEndLocation
+          register_usages_by: m_iVehicleID
+    exclude:
+      from: xdt.m_pTransportationTable.m_pBroomstickLocation
+      matching: m_iLocationID
+  step_broomstick_string:
+    ids:
+      from: xdt.m_pTransportationTable.m_pBroomstickLocation
+      filter:
+        - by: m_iLocationID
+          values: step_broomstick_location.ids
+      map:
+        - key: m_iLocationID
+    exclude:
+      from: xdt.m_pTransportationTable.m_pBroomstickString
+      matching: <index>
+  step_trans_icon_warp:
+    ids:
+      from: xdt.m_pTransportationTable.m_pTransportationWarpLocation
+      filter:
+        - by: m_iLocationID
+          values: step_transportation_warp_location.ids
+      map:
+        - key: m_iIcon
+    exclude:
+      from: xdt.m_pTransportationTable.m_pTransIcon
+      matching: <index>
+  step_trans_icon_broomstick:
+    ids:
+      from: xdt.m_pTransportationTable.m_pBroomstickLocation
+      filter:
+        - by: m_iLocationID
+          values: step_broomstick_location.ids
+      map:
+        - key: m_iIcon
+    exclude:
+      from: xdt.m_pTransportationTable.m_pTransIcon
+      matching: <index>
+  step_trans_icon:
+    ids:
+      from: xdt.m_pTransportationTable.m_pTransIcon
+      filter:
+        - by: <index>
+          values: step_trans_icon_warp.ids + step_trans_icon_broomstick.ids
+      map:
+        - key: <trans_icon_file>
+    exclude:
+      from: <icon_dir>
+  step_transportation_npc:
+    run_steps: npc
+    override:
+      step_npc_data:
+        ids:
+          from: xdt.m_pTransportationTable.m_pTransportationData
+          filter:
+            - by: m_iVehicleID
+              values: step_transportation_data.ids
+          map:
+            - key: m_iNPCID
+              register_usages_by: m_iVehicleID
+<type>item:
+  step_item_data:
+    ids:
+      from: xdt.m_p<type>ItemTable.m_pItemData
+      filter:
+        - by: m_iItemNumber
+          values: <excluded_ids>
+      map:
+        - key: m_iItemNumber
+    exclude:
+      from: xdt.m_p<type>ItemTable.m_pItemData
+      matching: m_iItemNumber
+  step_item_string_data:
+    ids:
+      from: xdt.m_p<type>ItemTable.m_pItemData
+      filter:
+        - by: m_iItemNumber
+          values: step_item_data.ids
+      map:
+        - key: m_iItemName
+          register_usages_by: m_iItemNumber
+        - key: m_iComment
+          register_usages_by: m_iItemNumber
+    exclude:
+      from: xdt.m_p<type>ItemTable.m_pItemStringData
+      matching: <index>
+  step_item_icon_data:
+    ids:
+      from: xdt.m_p<type>ItemTable.m_pItemData
+      filter:
+        - by: m_iItemNumber
+          values: step_item_data.ids
+      map:
+        - key: m_iIcon
+          register_usages_by: m_iItemNumber
+    exclude:
+      from: xdt.m_p<type>ItemTable.m_pItemIconData
+      matching: <index>
+  step_item_icons:
+    ids:
+      from: xdt.m_p<type>ItemTable.m_pItemIconData
+      filter:
+        - by: <index>
+          values: step_item_icon_data.ids
+      map:
+        - key: <item_icon_file>
+    exclude:
+      from: <icon_dir>
+  step_item_mesh_data:
+    ids:
+      from: xdt.m_p<type>ItemTable.m_pItemData
+      filter:
+        - by: m_iItemNumber
+          values: step_item_data.ids
+      map:
+        - key: m_iMesh
+          register_usages_by: m_iItemNumber
+    exclude:
+      from: xdt.m_p<type>ItemTable.m_pItemMeshData
+      matching: <index>
+  step_item_sound_data:
+    ids:
+      from: xdt.m_p<type>ItemTable.m_pItemData
+      filter:
+        - by: m_iItemNumber
+          values: step_item_data.ids
+      map:
+        - key: m_iSound1
+          register_usages_by: m_iItemNumber
+        - key: m_iSound2
+          register_usages_by: m_iItemNumber
+    exclude:
+      from: xdt.m_p<type>ItemTable.m_pItemSoundData
+      matching: <index>
+  step_vendor_item_data:
+    ids:
+      from: xdt.m_pVendorTable.m_pItemData
+      filter:
+        - by: m_iitemID
+          values: step_item_data.ids
+        - by: m_iItemType
+          values: <type_id>
+      map:
+        - key: <index>
+    exclude:
+      from: xdt.m_pVendorTable.m_pItemData
+      matching: <index>
+  step_mission_reward_item_data_0:
+    ids:
+      from: xdt.m_pMissionTable.m_pRewardData
+      filter:
+        - by: m_iMissionRewardItemID.0
+          values: step_item_data.ids
+        - by: m_iMissionRewarItemType.0
+          values: <type_id>
+      map:
+        - key: m_iMissionRewardID
+    exclude:
+      from: xdt.m_pMissionTable.m_pRewardData
+      matching: m_iMissionRewardID
+  step_mission_reward_item_data_1:
+    ids:
+      from: xdt.m_pMissionTable.m_pRewardData
+      filter:
+        - by: m_iMissionRewardItemID.1
+          values: step_item_data.ids
+        - by: m_iMissionRewarItemType.1
+          values: <type_id>
+      map:
+        - key: m_iMissionRewardID
+    exclude:
+      from: xdt.m_pMissionTable.m_pRewardData
+      matching: m_iMissionRewardID
+  step_mission_reward_item_data_2:
+    ids:
+      from: xdt.m_pMissionTable.m_pRewardData
+      filter:
+        - by: m_iMissionRewardItemID.2
+          values: step_item_data.ids
+        - by: m_iMissionRewarItemType.2
+          values: <type_id>
+      map:
+        - key: m_iMissionRewardID
+    exclude:
+      from: xdt.m_pMissionTable.m_pRewardData
+      matching: m_iMissionRewardID
+  step_mission_reward_item_data_3:
+    ids:
+      from: xdt.m_pMissionTable.m_pRewardData
+      filter:
+        - by: m_iMissionRewardItemID.3
+          values: step_item_data.ids
+        - by: m_iMissionRewarItemType.3
+          values: <type_id>
+      map:
+        - key: m_iMissionRewardID
+    exclude:
+      from: xdt.m_pMissionTable.m_pRewardData
+      matching: m_iMissionRewardID
+  step_mission:
+    run_steps: mission
+    override:
+      step_mission_data:
+        ids:
+          from: xdt.m_pMissionTable.m_pMissionData
+          filter:
+            - by: m_iSUReward
+              values: step_mission_reward_item_data_0.ids + step_mission_reward_item_data_1.ids + step_mission_reward_item_data_2.ids + step_mission_reward_item_data_3.ids
+          map:
+            - key: m_iHMissionID

@@ -1,0 +1,34 @@
+areas:
+  - [0, 0, 0, 0]
+instance:
+  - -1
+mission:
+  - -1
+nano:
+  - -1
+npc:
+  - -1
+shiny:
+  - -1
+transportation:
+  - -1
+backitem:
+  - -1
+glassitem:
+  - -1
+hatitem:
+  - -1
+pantsitem:
+  - -1
+shirtsitem:
+  - -1
+shoesitem:
+  - -1
+weaponitem:
+  - -1
+vehicleitem:
+  - -1
+generalitem:
+  - -1
+chestitem:
+  - -1
