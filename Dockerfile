@@ -3,8 +3,6 @@ FROM python:bookworm
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y git zip
-RUN wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
-RUN chmod +x /usr/local/bin/yq
 
 ADD requirements.txt .
 RUN pip install -r requirements.txt
