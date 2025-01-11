@@ -409,25 +409,19 @@ def filter_game_info(config_how_path: Path, config_exclude_path: Path, in_dir: P
         json.dump(modified_sources["xdt"], f, indent=4)
 
 
-def main(config_root: Path, in_root: Path, out_all_root: Path, out_released_root: Path):
+def main(config_root: Path, in_root: Path, out_root: Path):
     in_dirs = [p for p in in_root.iterdir() if p.is_dir()]
     config_exclude_how_path = config_root / "how-exclude.yml"
-    config_hide_how_path = config_root / "how-hide.yml"
 
     for in_dir in tqdm(in_dirs):
-        out_all_dir = out_all_root / in_dir.name
-        out_released_dir = out_released_root / in_dir.name
-
+        out_dir = out_root / in_dir.name
         config_exclude_path = config_root / f"exclude-{in_dir.name}.yml"
-        config_hide_path = config_root / f"hide-{in_dir.name}.yml"
-
-        filter_game_info(config_exclude_how_path, config_exclude_path, in_dir, out_all_dir)
-        filter_game_info(config_hide_how_path, config_hide_path, out_all_dir, out_released_dir)
+        filter_game_info(config_exclude_how_path, config_exclude_path, in_dir, out_dir)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        print("Usage: python filter_game_info.py <config_root> <in_root> <out_all_root> <out_released_root>")
+    if len(sys.argv) != 4:
+        print("Usage: python filter_game_info.py <config_root> <in_root> <out_root>")
         sys.exit(1)
 
     main(*map(Path, sys.argv[1:]))

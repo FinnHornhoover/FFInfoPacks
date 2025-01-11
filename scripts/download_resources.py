@@ -1,5 +1,7 @@
+import os
 import sys
 import asyncio
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +11,21 @@ import yaml
 from tqdm.asyncio import tqdm_asyncio
 
 REPO_RELEASE_URL = "https://github.com/FinnHornhoover/FFInfoPacks/releases/latest/download"
+
+
+def pull_table_data(server_data_root: Path, server_data_config: dict[str, Any]):
+    repo_name_path = Path(server_data_config["repository"].strip("/"))
+    clone_path = server_data_root / repo_name_path.parent
+    clone_path.mkdir(parents=True, exist_ok=True)
+
+    token = os.environ.get("TDATA_PULL_TOKEN")
+    token_prefix = f"{token}@" if token else ""
+    url = f"https://{token_prefix}github.com/{repo_name_path}.git"
+
+    repo_path = clone_path / repo_name_path.name
+
+    if not repo_path.is_dir():
+        subprocess.run(["git", "clone", "-q", url, repo_path])
 
 
 async def download_file(client: httpx.AsyncClient, url: str, path: Path):
@@ -52,7 +69,7 @@ async def download_zip_or_resources(
 
 
 async def download_resources(
-    config: dict[str, dict[str, Any]], asset_root: Path, artifact_root: Path
+    config: dict[str, dict[str, Any]], asset_root: Path, artifact_root: Path, server_data_root: Path
 ):
     async with httpx.AsyncClient(
         limits=httpx.Limits(max_connections=5),
@@ -65,6 +82,8 @@ async def download_resources(
         for build, build_config in config.items():
             (asset_root / build).mkdir(parents=True, exist_ok=True)
 
+            pull_table_data(server_data_root, build_config["server-data"])
+
             coroutines.append(
                 download_zip_or_resources(
                     client, build, build_config, asset_root, artifact_root
@@ -74,15 +93,15 @@ async def download_resources(
         await tqdm_asyncio.gather(*coroutines)
 
 
-async def main(config_path: str, asset_root: str, artifact_root: str):
+async def main(config_path: Path, asset_root: Path, artifact_root: Path, server_data_root: Path):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)["config"]
-    await download_resources(config, Path(asset_root), Path(artifact_root))
+    await download_resources(config, asset_root, artifact_root, server_data_root)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: python download_resources.py <config_path> <asset_root> <artifact_root>")
+    if len(sys.argv) != 5:
+        print("Usage: python download_resources.py <config_path> <asset_root> <artifact_root> <server_data_root>")
         sys.exit(1)
 
-    asyncio.run(main(sys.argv[1], sys.argv[2], sys.argv[3]))
+    asyncio.run(main(*map(Path, sys.argv[1:])))

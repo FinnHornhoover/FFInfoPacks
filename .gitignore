@@ -166,3 +166,5 @@ cython_debug/
 assets/
 pre_filter/
 output*/
+artifacts/
+server_data/
