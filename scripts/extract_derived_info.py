@@ -482,7 +482,11 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
     for vendor_item_obj in vendor_item_list[1:]:
         npc_type_id = vendor_item_obj["m_iNpcNumber"]
         item_str_id = f"{vendor_item_obj['m_iItemType']:02d}:{vendor_item_obj['m_iitemID']:04d}"
-        item_info_obj = sources["item_info"].get(item_str_id, {})
+
+        if item_str_id not in sources["item_info"]:
+            continue
+
+        item_info_obj = sources["item_info"][item_str_id]
 
         vendor_item_map[npc_type_id].append({
             "ItemInfo": item_info_obj,
@@ -1156,12 +1160,16 @@ def construct_vendor_data(sources: dict) -> None:
             item_type_id = vendor_item_obj["m_iItemType"]
             item_str_id = f"{item_type_id:02d}:{item_id:04d}"
 
+            if item_str_id not in sources["item_info"]:
+                continue
+
             sources["vendor_info"][vendor_id]["Items"][item_str_id] = {
                 "ItemTypeID": item_type_id,
                 "ItemType": ITEM_TYPES[item_type_id],
                 "ItemID": item_id,
-                "Item": sources["item_info"].get(item_str_id),
+                "Item": sources["item_info"][item_str_id],
                 "Price": vendor_item_obj["m_iSellCost"],
+                "SortNumber": vendor_item_obj["m_iSortNumber"],
             }
 
 
@@ -1942,6 +1950,29 @@ def construct_valid_id_sets(sources: dict) -> None:
         obj["Id"] for obj in sources["eggs"]["EggTypes"].values()
     }
 
+    sources["valid_npcs"] = {
+        str_id
+        for type_id, obj_dict in sources["npc_info"].items()
+        if type_id in sources["valid_npc_types"]
+        for str_id in obj_dict
+    }
+
+    sources["valid_mobs"] = {
+        str_id
+        for type_id, obj_list in sources["mob_info"].items()
+        if type_id in sources["valid_mob_types"]
+        for str_id in obj_list
+    }
+
+    sources["valid_npc_mobs"] = sources["valid_npcs"] | sources["valid_mobs"]
+
+    sources["valid_eggs"] = {
+        str_id
+        for type_id, obj_list in sources["egg_info"].items()
+        if type_id in sources["valid_egg_types"]
+        for str_id in obj_list
+    }
+
     # vendors whose npcs are loaded are valid
     sources["valid_vendors"] = {
         obj["NPCID"]
@@ -2037,25 +2068,41 @@ def construct_valid_id_sets(sources: dict) -> None:
 
 
 def filter_sources(sources: dict) -> None:
-    def filter_single(key: str, valids_key: str) -> None:
-        sources[key] = {
+    def filter_single(dct: dict[str, dict], key: str, valids_key: str) -> None:
+        dct[key] = {
             obj_id: obj
-            for obj_id, obj in sources[key].items()
+            for obj_id, obj in dct[key].items()
             if obj_id in sources[valids_key]
         }
 
-    filter_single("npc_type_info", "valid_npc_types")
-    filter_single("mob_type_info", "valid_mob_types")
-    filter_single("npc_info", "valid_npc_types")
-    filter_single("mob_info", "valid_mob_types")
-    filter_single("egg_type_info", "valid_egg_types")
-    filter_single("egg_info", "valid_egg_types")
-    filter_single("mission_info", "valid_missions")
-    filter_single("instance_info", "valid_instances")
-    filter_single("infected_zone_info", "valid_infected_zones")
-    filter_single("transportation_info", "valid_transportations")
-    filter_single("vendor_info", "valid_vendors")
-    filter_single("item_info", "valid_items")
+    filter_single(sources, "npc_type_info", "valid_npc_types")
+    filter_single(sources, "mob_type_info", "valid_mob_types")
+    filter_single(sources, "egg_type_info", "valid_egg_types")
+    # physical npc, mob, egg objects in source are grouped by type
+    filter_single(sources, "npc_info", "valid_npc_types")
+    filter_single(sources, "mob_info", "valid_mob_types")
+    filter_single(sources, "egg_info", "valid_egg_types")
+    filter_single(sources, "mission_info", "valid_missions")
+    filter_single(sources, "instance_info", "valid_instances")
+    filter_single(sources, "infected_zone_info", "valid_infected_zones")
+    filter_single(sources, "transportation_info", "valid_transportations")
+    filter_single(sources, "vendor_info", "valid_vendors")
+    filter_single(sources, "item_info", "valid_items")
+
+    for area_obj_list in sources["area_info"].values():
+        for area_obj in area_obj_list:
+            filter_single(area_obj, "NPCTypes", "valid_npc_types")
+            filter_single(area_obj, "MobTypes", "valid_mob_types")
+            filter_single(area_obj, "EggTypes", "valid_egg_types")
+            filter_single(area_obj, "NPCs", "valid_npcs")
+            filter_single(area_obj, "Mobs", "valid_mobs")
+            filter_single(area_obj, "Eggs", "valid_eggs")
+            filter_single(area_obj, "Vendors", "valid_vendors")
+            filter_single(area_obj, "InstanceWarps", "valid_instance_warps")
+            filter_single(area_obj, "Transportation", "valid_transportations")
+
+            if area_obj["InfectedZone"] and area_obj["InfectedZone"]["ID"] not in sources["valid_infected_zones"]:
+                area_obj["InfectedZone"] = None
 
 
 def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path, patch_names: list[str]):
