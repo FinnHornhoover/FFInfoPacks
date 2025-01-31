@@ -1609,21 +1609,23 @@ def construct_mob_event_source_data(sources: dict) -> None:
                 mob_type = sources["mob_type_info"][mob_event_id]
 
                 for instance_id, area_dict in sources["mob_instance_region_grouped_info"][mob_event_id].items():
-                    for area_tag, mob_list in area_dict.items():
+                    for area_tag in area_dict:
                         sources["mob_source_info"][crate_id].append({
                             "MobTypeID": mob_event_id,
                             "MobName": mob_type["Name"],
                             "MobIcon": mob_type["Icon"],
-                            "Locations": [
-                                {
-                                    "MobID": mob_obj["ID"],
-                                    "X": mob_obj["X"],
-                                    "Y": mob_obj["Y"],
-                                    "Z": mob_obj["Z"],
-                                    "HP": mob_obj["HP"],
-                                }
-                                for mob_obj in mob_list
-                            ],
+                            # this is a good +130MB on the source json file, we can't afford it
+                            # just look it up if you want from mob_info
+                            # "Locations": [
+                            #     {
+                            #         "MobID": mob_obj["ID"],
+                            #         "X": mob_obj["X"],
+                            #         "Y": mob_obj["Y"],
+                            #         "Z": mob_obj["Z"],
+                            #         "HP": mob_obj["HP"],
+                            #     }
+                            #     for mob_obj in area_dict[area_tag]
+                            # ],
                             "InstanceID": instance_id,
                             "AreaZone": area_tag,
                             **drops_info,
