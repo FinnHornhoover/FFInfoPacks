@@ -1609,7 +1609,7 @@ def construct_mob_event_source_data(sources: dict) -> None:
                 mob_type = sources["mob_type_info"][mob_event_id]
 
                 for instance_id, area_dict in sources["mob_instance_region_grouped_info"][mob_event_id].items():
-                    for area_tag in area_dict:
+                    for area_tag, mob_list in area_dict.items():
                         sources["mob_source_info"][crate_id].append({
                             "MobTypeID": mob_event_id,
                             "MobName": mob_type["Name"],
@@ -1624,8 +1624,16 @@ def construct_mob_event_source_data(sources: dict) -> None:
                             #         "Z": mob_obj["Z"],
                             #         "HP": mob_obj["HP"],
                             #     }
-                            #     for mob_obj in area_dict[area_tag]
+                            #     for mob_obj in mob_list
                             # ],
+                            "LocationLimits": {
+                                "MinX": min(mob_obj["X"] for mob_obj in mob_list),
+                                "MinY": min(mob_obj["Y"] for mob_obj in mob_list),
+                                "MaxX": max(mob_obj["X"] for mob_obj in mob_list),
+                                "MaxY": max(mob_obj["Y"] for mob_obj in mob_list),
+                                "MinZ": min(mob_obj["Z"] for mob_obj in mob_list),
+                                "MaxZ": max(mob_obj["Z"] for mob_obj in mob_list),
+                            },
                             "InstanceID": instance_id,
                             "AreaZone": area_tag,
                             **drops_info,
