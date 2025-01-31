@@ -591,7 +591,7 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
                     {}
                     if npc_data["m_iBarkerType"] not in range(1, 5)
                     else {
-                        mission_string_list[mission_obj["m_iHMissionName"]]["m_pstrNameString"]: mission_string_list[mission_barker_id]["m_pstrNameString"]
+                        f"{mission_obj['m_iHMissionID']}:{mission_string_list[mission_obj['m_iHMissionName']]['m_pstrNameString']}": mission_string_list[mission_barker_id]["m_pstrNameString"]
                         for mission_obj in mission_data_list
                         if (mission_barker_id := mission_obj["m_iHBarkerTextID"][npc_data["m_iBarkerType"] - 1]) > 0
                     }
@@ -873,7 +873,11 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             mission_info_obj["Barkers"] = {
                 f"{npc_obj['m_iNpcNumber']:04d}:{npc_string_list[npc_name_id]['m_strName']}": mission_string_list[barker_string_id]["m_pstrNameString"]
                 for npc_obj in npc_data_list
-                if (npc_name_id := npc_obj["m_iNpcName"]) > 0 and (barker_string_id := task_barker_id_list[npc_obj["m_iBarkerType"] - 1]) > 0
+                if (
+                    (npc_name_id := npc_obj["m_iNpcName"]) > 0
+                    and npc_obj["m_iBarkerType"] in range(1, 5)
+                    and (barker_string_id := task_barker_id_list[npc_obj["m_iBarkerType"] - 1]) > 0
+                )
             }
 
             mission_info_obj["Tasks"][task_id] = {
