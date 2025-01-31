@@ -800,7 +800,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             "RequiredGuide": MISSION_GUIDE_TYPES[mission_obj["m_iCSTReqGuide"]],
             "RequiredMissionIDs": mission_obj["m_iCSTReqMission"],
             "RequiredMissions": {
-                m_id: mission_string_list[mission_obj["m_iHMissionName"]]["m_pstrNameString"]
+                m_id: mission_string_list[mission_task_groupped_list[m_id][0]["m_iHMissionName"]]["m_pstrNameString"]
                 for m_id in mission_obj["m_iCSTReqMission"]
                 if m_id > 0
             },
