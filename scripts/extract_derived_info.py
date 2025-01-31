@@ -1864,8 +1864,9 @@ def construct_item_source_data(sources: dict) -> None:
                 girl_probability = crate_content_obj["GirlProbability"]
 
                 for crate_source_obj in source_recurse(containing_crate_str_id):
+                    source_type = crate_source_obj["SourceType"]
                     crate_sources.append({
-                        "SourceType": crate_source_obj["SourceType"],
+                        "SourceType": source_type if source_type != "MissionReward" else "MissionRewardCrate",
                         "Source": crate_source_obj["Source"],
                         "SourceBoyProbability": boy_probability * crate_source_obj.get("SourceBoyProbability", 1.0),
                         "SourceGirlProbability": girl_probability * crate_source_obj.get("SourceGirlProbability", 1.0),
