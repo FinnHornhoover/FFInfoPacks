@@ -10,8 +10,6 @@ import yaml
 import humanize
 from tqdm import tqdm
 
-# TODO: go over all the info files and make sure they make sense
-# TODO: decide where to put constructed objects in other constructed objects
 # TODO: csv and other output formats
 WORLD_INSTANCE_ID = 0
 NPC_ID_OFFSET = 1
@@ -592,7 +590,7 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
                     {}
                     if npc_data["m_iBarkerType"] not in range(1, 5)
                     else {
-                        f"{mission_obj['m_iHMissionID']}:{mission_string_list[mission_obj['m_iHMissionName']]['m_pstrNameString']}": mission_string_list[mission_barker_id]["m_pstrNameString"]
+                        f"{mission_obj['m_iHMissionID']:04d}:{mission_string_list[mission_obj['m_iHMissionName']]['m_pstrNameString']}": mission_string_list[mission_barker_id]["m_pstrNameString"]
                         for mission_obj in mission_data_list
                         if (mission_barker_id := mission_obj["m_iHBarkerTextID"][npc_data["m_iBarkerType"] - 1]) > 0
                     }
@@ -2139,6 +2137,14 @@ def filter_sources(sources: dict) -> None:
     filter_single(sources, "vendor_info", "valid_vendors")
     # we shouldn't filter items based on acquirable sources, since sources may be removed later from the game
     # filter_single(sources, "item_info", "valid_items")
+
+    # filter out mission barkers specifically
+    for mission_obj in sources["mission_info"].values():
+        mission_obj["Barkers"] = {
+            npc_tag: barker_text
+            for npc_tag, barker_text in mission_obj["Barkers"].items()
+            if int(npc_tag.split(":")[0]) in sources["valid_npc_types"]
+        }
 
     for area_obj_list in sources["area_info"].values():
         for area_obj in area_obj_list:
