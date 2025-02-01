@@ -1155,7 +1155,8 @@ def construct_vendor_data(sources: dict) -> None:
     for vendor_id, vendor_item_data_group in vendor_groupped_list.items():
         sources["vendor_info"][vendor_id] = {
             "NPCID": vendor_id,
-            "NPCType": sources["npc_type_info"][vendor_id] if vendor_id > 0 else None,
+            # too much redundant information here, just NPCs are enough
+            # "NPCType": sources["npc_type_info"][vendor_id] if vendor_id > 0 else None,
             "NPCs": sources["npc_info"][vendor_id] if vendor_id > 0 else None,
             "Items": {},
         }
@@ -1168,12 +1169,14 @@ def construct_vendor_data(sources: dict) -> None:
             if item_str_id not in sources["item_info"]:
                 continue
 
+            item_info_obj = sources["item_info"][item_str_id]
+
             sources["vendor_info"][vendor_id]["Items"][item_str_id] = {
                 "ItemTypeID": item_type_id,
                 "ItemType": ITEM_TYPES[item_type_id],
                 "ItemID": item_id,
-                "Item": sources["item_info"][item_str_id],
-                "Price": vendor_item_obj["m_iSellCost"],
+                "Item": item_info_obj,
+                "Price": item_info_obj.get("ItemPrice", vendor_item_obj["m_iSellCost"]),
                 "SortNumber": vendor_item_obj["m_iSortNumber"],
             }
 
