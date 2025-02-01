@@ -747,6 +747,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             key=itemgetter("m_iHMissionID"),
         )
     }
+    mission_task_dict = {obj["m_iHTaskID"]: obj for obj in mission_data_list}
     mission_string_list = mission_table_obj["m_pMissionStringData"]
     mission_journal_data_list = mission_table_obj["m_pJournalData"]
     mission_reward_data_list = mission_table_obj["m_pRewardData"]
@@ -839,8 +840,8 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             task_end_dialog_bubble_npc_id = task_obj["m_iSUDialogBubbleNPCID"]
             task_fail_dialog_bubble_npc_id = task_obj["m_iFDialogBubbleNPCID"]
             task_reward_id = task_obj["m_iSUReward"]
-            task_end_outgoing_task_obj = mission_data_list[task_end_outgoing_task_id] if task_end_outgoing_task_id < len(mission_data_list) else mission_data_list[0]
-            task_fail_outgoing_task_obj = mission_data_list[task_fail_outgoing_task_id] if task_fail_outgoing_task_id < len(mission_data_list) else mission_data_list[0]
+            task_end_outgoing_task_obj = mission_task_dict[task_end_outgoing_task_id] if task_end_outgoing_task_id in mission_task_dict else mission_task_dict[0]
+            task_fail_outgoing_task_obj = mission_task_dict[task_fail_outgoing_task_id] if task_fail_outgoing_task_id in mission_task_dict else mission_task_dict[0]
             task_start_journal_obj = mission_journal_data_list[task_start_journal_id] if task_start_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
             task_end_journal_obj = mission_journal_data_list[task_end_journal_id] if task_end_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
             task_fail_journal_obj = mission_journal_data_list[task_fail_journal_id] if task_fail_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
@@ -1018,13 +1019,14 @@ def construct_instance_data(sources: dict[str, dict]) -> None:
     mission_table_obj = sources["xdt"]["m_pMissionTable"]
     mission_data_list = mission_table_obj["m_pMissionData"]
     mission_string_list = mission_table_obj["m_pMissionStringData"]
+    mission_task_dict = {obj["m_iHTaskID"]: obj for obj in mission_data_list}
 
     for warp_data_obj in warp_data_list[1:]:
         warp_id = warp_data_obj["m_iWarpNumber"]
         entry_instance_id = warp_data_obj["m_iToMapNum"]
         warp_npc_id = warp_data_obj["m_iNpcNumber"]
         warp_task_id = warp_data_obj["m_iLimit_TaskID"]
-        warp_task_obj = mission_data_list[warp_task_id] if warp_task_id < len(mission_data_list) else mission_data_list[0]
+        warp_task_obj = mission_task_dict[warp_task_id] if warp_task_id in mission_task_dict else mission_task_dict[0]
         use_item_type = warp_data_obj["m_iLimit_UseItemType"]
         use_item_id = warp_data_obj["m_iLimit_UseItemID"]
         item_str_id = f"{use_item_type:02d}:{use_item_id:04d}"
@@ -1041,7 +1043,7 @@ def construct_instance_data(sources: dict[str, dict]) -> None:
             "NPCID": warp_npc_id,
             "NPCType": sources["npc_type_info"][warp_npc_id] if warp_npc_id > 0 else None,
             "NPCs": sources["npc_info"][warp_npc_id] if warp_npc_id > 0 else None,
-            "RequiredTaskID": warp_data_obj["m_iLimit_TaskID"],
+            "RequiredTaskID": warp_task_id,
             "RequiredTaskObjective": mission_string_list[warp_task_obj["m_iHCurrentObjective"]]["m_pstrNameString"],
             "RequiredMissionID": warp_task_obj["m_iHMissionID"],
             "RequiredMission": mission_string_list[warp_task_obj["m_iHMissionName"]]["m_pstrNameString"],
