@@ -1,6 +1,7 @@
 import sys
 import json
 from collections import defaultdict
+from fractions import Fraction
 from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
@@ -1590,16 +1591,27 @@ def construct_mob_event_source_data(sources: dict) -> None:
                     relevant_drop_chance += listed_crate_chance
                 total_drop_chance += listed_crate_chance
 
+            potion_probability = Fraction(mdc["PotionDropChance"], mdc["PotionDropChanceTotal"])
+            boost_probability = Fraction(mdc["BoostDropChance"], mdc["BoostDropChanceTotal"])
+            taro_probability = Fraction(mdc["TaroDropChance"], mdc["TaroDropChanceTotal"])
+            fm_probability = Fraction(mdc["FMDropChance"], mdc["FMDropChanceTotal"])
+            probability = Fraction(cdc["DropChance"], cdc["DropChanceTotal"]) * Fraction(relevant_drop_chance, total_drop_chance)
+
             drops_info = {
                 "PotionReward": mdt["PotionAmount"],
                 "BoostReward": mdt["BoostAmount"],
                 "TaroReward": mdt["TaroAmount"],
                 "FMReward": mdt["FMAmount"],
-                "PotionProbability": mdc["PotionDropChance"] / mdc["PotionDropChanceTotal"],
-                "BoostProbability": mdc["BoostDropChance"] / mdc["BoostDropChanceTotal"],
-                "TaroProbability": mdc["TaroDropChance"] / mdc["TaroDropChanceTotal"],
-                "FMProbability": mdc["FMDropChance"] / mdc["FMDropChanceTotal"],
-                "Probability": cdc["DropChance"] * relevant_drop_chance / (cdc["DropChanceTotal"] * total_drop_chance),
+                "PotionOdds": str(potion_probability),
+                "BoostOdds": str(boost_probability),
+                "TaroOdds": str(taro_probability),
+                "FMOdds": str(fm_probability),
+                "Odds": str(probability),
+                "PotionProbability": float(potion_probability),
+                "BoostProbability": float(boost_probability),
+                "TaroProbability": float(taro_probability),
+                "FMProbability": float(fm_probability),
+                "Probability": float(probability),
             }
 
             if mob_event_name == "Mobs":
@@ -1746,26 +1758,32 @@ def construct_crate_content_source_data(sources: dict) -> None:
         total_weight = sum(rarity_weights_obj["Weights"])
 
         itemset_view = itemset_views[itemset_obj["ItemSetID"]]
-        boy_rarity_probabilities = itemset_view[GENDERS.index("Male")]
-        girl_rarity_probabilities = itemset_view[GENDERS.index("Female")]
+        boy_rarity_weights = itemset_view[GENDERS.index("Male")]
+        girl_rarity_weights = itemset_view[GENDERS.index("Female")]
 
-        boy_probabilities = defaultdict(float)
-        girl_probabilities = defaultdict(float)
+        boy_probabilities = defaultdict(Fraction)
+        girl_probabilities = defaultdict(Fraction)
 
         for rarity_id, weight in zip(range(1, 5), rarity_weights_obj["Weights"]):
-            rarity_probability = weight / total_weight
+            rarity_probability = Fraction(weight, total_weight)
+            boy_rarity_ir_weights = boy_rarity_weights[rarity_id]
+            girl_rarity_ir_weights = girl_rarity_weights[rarity_id]
+            sum_boy_rarity_ir_weights = max(1, sum(boy_rarity_ir_weights.values()))
+            sum_girl_rarity_ir_weights = max(1, sum(girl_rarity_ir_weights.values()))
 
             for ir_id in itemset_obj["ItemReferenceIDs"]:
-                boy_probabilities[ir_id] += boy_rarity_probabilities[rarity_id][ir_id] * rarity_probability
-                girl_probabilities[ir_id] += girl_rarity_probabilities[rarity_id][ir_id] * rarity_probability
+                boy_probabilities[ir_id] += rarity_probability * Fraction(boy_rarity_ir_weights[ir_id], sum_boy_rarity_ir_weights)
+                girl_probabilities[ir_id] += rarity_probability * Fraction(girl_rarity_ir_weights[ir_id], sum_girl_rarity_ir_weights)
 
         for ir_id in itemset_obj["ItemReferenceIDs"]:
             item_str_id = item_ref_to_str_id[ir_id]
 
             sources["crate_content_source_info"][item_str_id].append({
                 "ContainingCrateID": crate_id,
-                "BoyProbability": boy_probabilities[ir_id],
-                "GirlProbability": girl_probabilities[ir_id],
+                "BoyOdds": str(boy_probabilities[ir_id]),
+                "GirlOdds": str(girl_probabilities[ir_id]),
+                "BoyProbability": float(boy_probabilities[ir_id]),
+                "GirlProbability": float(girl_probabilities[ir_id]),
             })
 
 
@@ -1811,6 +1829,8 @@ def construct_crate_source_data(sources: dict) -> None:
             sources["crate_source_info"][crate_id].append({
                 "SourceType": "Mob",
                 "Source": mob_obj,
+                "SourceBoyOdds": mob_obj["Odds"],
+                "SourceGirlOdds": mob_obj["Odds"],
                 "SourceBoyProbability": mob_obj["Probability"],
                 "SourceGirlProbability": mob_obj["Probability"],
             })
@@ -1820,6 +1840,8 @@ def construct_crate_source_data(sources: dict) -> None:
             sources["crate_source_info"][crate_id].append({
                 "SourceType": "Event",
                 "Source": event_obj,
+                "SourceBoyOdds": event_obj["Odds"],
+                "SourceGirlOdds": event_obj["Odds"],
                 "SourceBoyProbability": event_obj["Probability"],
                 "SourceGirlProbability": event_obj["Probability"],
             })
@@ -1870,21 +1892,25 @@ def construct_item_source_data(sources: dict) -> None:
             for crate_content_obj in crate_content_objs:
                 containing_crate_id = crate_content_obj["ContainingCrateID"]
                 containing_crate_str_id = f"09:{containing_crate_id:04d}"
-                boy_probability = crate_content_obj["BoyProbability"]
-                girl_probability = crate_content_obj["GirlProbability"]
+                boy_probability = Fraction(crate_content_obj["BoyOdds"])
+                girl_probability = Fraction(crate_content_obj["GirlOdds"])
 
                 for crate_source_obj in source_recurse(containing_crate_str_id):
                     source_type = crate_source_obj["SourceType"]
-                    crate_sources.append({
+                    source_result = {
                         "SourceType": source_type if source_type != "MissionReward" else "MissionRewardCrate",
                         "Source": crate_source_obj["Source"],
-                        "SourceBoyProbability": boy_probability * crate_source_obj.get("SourceBoyProbability", 1.0),
-                        "SourceGirlProbability": girl_probability * crate_source_obj.get("SourceGirlProbability", 1.0),
-                    })
+                        "SourceBoyOdds": str(boy_probability * Fraction(crate_source_obj.get("SourceBoyOdds", 1.0))),
+                        "SourceGirlOdds": str(girl_probability * Fraction(crate_source_obj.get("SourceGirlOdds", 1.0))),
+                        "SourceBoyProbability": float(boy_probability) * crate_source_obj.get("SourceBoyProbability", 1.0),
+                        "SourceGirlProbability": float(girl_probability) * crate_source_obj.get("SourceGirlProbability", 1.0),
+                    }
+                    crate_sources.append(source_result)
 
             return crate_sources
 
-        sources["item_source_info"][item_str_id].extend(source_recurse(item_str_id))
+        if (recursed_sources := source_recurse(item_str_id)):
+            sources["item_source_info"][item_str_id].extend(recursed_sources)
 
 
 def fill_area_info(sources: dict) -> None:
