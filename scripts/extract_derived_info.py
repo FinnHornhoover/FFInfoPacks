@@ -2137,7 +2137,8 @@ def filter_sources(sources: dict) -> None:
     filter_single(sources, "infected_zone_info", "valid_infected_zones")
     filter_single(sources, "transportation_info", "valid_transportations")
     filter_single(sources, "vendor_info", "valid_vendors")
-    filter_single(sources, "item_info", "valid_items")
+    # we shouldn't filter items based on acquirable sources, since sources may be removed later from the game
+    # filter_single(sources, "item_info", "valid_items")
 
     for area_obj_list in sources["area_info"].values():
         for area_obj in area_obj_list:
