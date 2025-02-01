@@ -1207,8 +1207,12 @@ def construct_ep_instance_data(sources: dict) -> None:
             "ScaleFactor": racing_obj["ScaleFactor"],
             "PodFactor": racing_obj["PodFactor"],
             "TimeFactor": racing_obj["TimeFactor"],
-            "ScoreFunction": "min(ScoreCap, floor(exp(ScaleFactor + PodFactor * PodsCollected / TotalPods - TimeFactor * TimeElapsedSeconds / TimeLimitSeconds)))",
-            "FMRewardFunction": "floor((1 + exp(ScaleFactor - 1) * PodFactor * PodsCollected) / TotalPods)",
+            "ScoreFunction": "min({ScoreCap}, floor(exp({ScaleFactor} + {PodFactor} * PodsCollected / {TotalPods} - {TimeFactor} * TimeElapsedSeconds / {TimeLimit})))".format(
+                **racing_obj,
+            ),
+            "FMRewardFunction": "floor((1 + exp({ScaleFactor} - 1) * {PodFactor} * PodsCollected) / {TotalPods})".format(
+                **racing_obj,
+            ),
             "StarsToItemRewards": {
                 5 - i: {
                     "ItemTypeID": 9,
