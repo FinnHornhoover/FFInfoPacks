@@ -11,6 +11,7 @@ import humanize
 from tqdm import tqdm
 
 # TODO: csv and other output formats
+SEP = "::"
 WORLD_INSTANCE_ID = 0
 NPC_ID_OFFSET = 1
 MOB_ID_OFFSET = 10000
@@ -381,7 +382,7 @@ def construct_item_info_data(sources: dict[str, dict]) -> None:
         for obj in item_data_list[1:]:
             item_id = obj["m_iItemNumber"]
             weapon_type_id = obj.get("m_iTargetMode", 0)
-            str_id = f"{i:02d}:{item_id:04d}"
+            str_id = f"{i:02d}{SEP}{item_id:04d}"
             icon_id = obj["m_iIcon"]
             icon_obj = item_icon_list[icon_id] if icon_id < len(item_icon_list) else None
             str_obj = item_string_list[obj["m_iItemName"]]
@@ -499,7 +500,7 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
 
     for vendor_item_obj in vendor_item_list[1:]:
         npc_type_id = vendor_item_obj["m_iNpcNumber"]
-        item_str_id = f"{vendor_item_obj['m_iItemType']:02d}:{vendor_item_obj['m_iitemID']:04d}"
+        item_str_id = f"{vendor_item_obj['m_iItemType']:02d}{SEP}{vendor_item_obj['m_iitemID']:04d}"
 
         if item_str_id not in sources["item_info"]:
             continue
@@ -609,7 +610,7 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
                     {}
                     if npc_data["m_iBarkerType"] not in range(1, 5)
                     else {
-                        f"{mission_obj['m_iHMissionID']:04d}:{mission_string_list[mission_obj['m_iHMissionName']]['m_pstrNameString']}": mission_string_list[mission_barker_id]["m_pstrNameString"]
+                        f"{mission_obj['m_iHMissionID']:04d}{SEP}{mission_string_list[mission_obj['m_iHMissionName']]['m_pstrNameString']}": mission_string_list[mission_barker_id]["m_pstrNameString"]
                         for mission_obj in mission_data_list
                         if (mission_barker_id := mission_obj["m_iHBarkerTextID"][npc_data["m_iBarkerType"] - 1]) > 0
                     }
@@ -713,7 +714,7 @@ def construct_egg_data(sources: dict[str, dict]) -> None:
         egg_effect_id = egg_type_obj["EffectId"]
         egg_skill_obj = skill_data_list[egg_effect_id]
         egg_crate_id = egg_type_obj["DropCrateId"]
-        egg_crate_item_str_id = f"09:{egg_crate_id:04d}"
+        egg_crate_item_str_id = f"09{SEP}{egg_crate_id:04d}"
 
         sources["egg_type_info"][egg_type_id] = {
             "ID": egg_type_id,
@@ -880,7 +881,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 mission_info_obj["Rewards"]["Taros"] = task_reward_obj["m_iCash"]
                 mission_info_obj["Rewards"]["FM"] = task_reward_obj["m_iFusionMatter"]
                 mission_info_obj["Rewards"]["Items"] = [
-                    sources["item_info"][f"{item_type:02d}:{item_id:04d}"]
+                    sources["item_info"][f"{item_type:02d}{SEP}{item_id:04d}"]
                     for item_type, item_id in zip(
                         task_reward_obj["m_iMissionRewarItemType"],
                         task_reward_obj["m_iMissionRewardItemID"],
@@ -890,7 +891,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 mission_info_obj["Rewards"]["ItemSelectionNeeded"] = task_reward_obj["m_iBox1Choice"] > 0
 
             mission_info_obj["Barkers"] = {
-                f"{npc_obj['m_iNpcNumber']:04d}:{npc_string_list[npc_name_id]['m_strName']}": mission_string_list[barker_string_id]["m_pstrNameString"]
+                f"{npc_obj['m_iNpcNumber']:04d}{SEP}{npc_string_list[npc_name_id]['m_strName']}": mission_string_list[barker_string_id]["m_pstrNameString"]
                 for npc_obj in npc_data_list
                 if (
                     (npc_name_id := npc_obj["m_iNpcName"]) > 0
@@ -971,7 +972,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "OnFailNextTaskID": task_fail_outgoing_task_id,
                 "OnFailTaskObjective": mission_string_list[task_fail_outgoing_task_obj["m_iHCurrentObjective"]]["m_pstrNameString"],
                 "QuestItemMonsterRequirements": {
-                    f"{mob_type_id:04d}:{npc_string_list[mob_type_id]['m_strName']}": {
+                    f"{mob_type_id:04d}{SEP}{npc_string_list[mob_type_id]['m_strName']}": {
                         "KillCount": num_to_kill,
                         "QuestItemID": item_id,
                         "QuestItem": quest_item_string_list[quest_item_data_list[item_id]["m_iItemName"]]["m_strName"],
@@ -988,7 +989,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     if mob_type_id > 0
                 },
                 "QuestItemChangeOnStart": {
-                    f"{item_id:04d}:{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": item_num_needed
+                    f"{item_id:04d}{SEP}{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": item_num_needed
                     for item_id, item_num_needed in zip(
                         mission_obj["m_iSTItemID"],
                         mission_obj["m_iSTItemNumNeeded"],
@@ -996,7 +997,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     if item_id > 0 and item_id < len(quest_item_data_list)
                 },
                 "QuestItemChangeOnEnd": {
-                    f"{item_id:04d}:{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": item_num_needed
+                    f"{item_id:04d}{SEP}{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": item_num_needed
                     for item_id, item_num_needed in zip(
                         mission_obj["m_iSUItem"],
                         mission_obj["m_iSUInstancename"],
@@ -1004,7 +1005,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     if item_id > 0 and item_id < len(quest_item_data_list)
                 },
                 "QuestItemChangeOnFail": {
-                    f"{item_id:04d}:{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": item_num_needed
+                    f"{item_id:04d}{SEP}{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": item_num_needed
                     for item_id, item_num_needed in zip(
                         mission_obj["m_iFItemID"],
                         mission_obj["m_iFItemNumNeeded"],
@@ -1012,7 +1013,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     if item_id > 0 and item_id < len(quest_item_data_list)
                 },
                 "QuestItemsDeleted": [
-                    f"{item_id:04d}:{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}"
+                    f"{item_id:04d}{SEP}{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}"
                     for item_id in mission_obj["m_iDelItemID"]
                     if item_id > 0 and item_id < len(quest_item_data_list)
                 ],
@@ -1046,7 +1047,7 @@ def construct_instance_data(sources: dict[str, dict]) -> None:
         warp_task_obj = mission_task_dict[warp_task_id] if warp_task_id in mission_task_dict else mission_task_dict[0]
         use_item_type = warp_data_obj["m_iLimit_UseItemType"]
         use_item_id = warp_data_obj["m_iLimit_UseItemID"]
-        item_str_id = f"{use_item_type:02d}:{use_item_id:04d}"
+        item_str_id = f"{use_item_type:02d}{SEP}{use_item_id:04d}"
 
         sources["instance_warp_info"][warp_id] = {
             "ID": warp_id,
@@ -1117,7 +1118,7 @@ def construct_nano_data(sources: dict) -> None:
         nano_tune_name = nano_tune_string_list[nano_tune_obj["m_iTuneName"]]["m_strName"]
         nano_tune_type_name = nano_tune_string_list[nano_tune_obj["m_iTuneName"]]["m_strComment1"]
         nano_tune_comment = nano_tune_string_list[nano_tune_obj["m_iComment"]]["m_strComment"]
-        item_str_id = f"07:{nano_tune_obj['m_iReqItemID']:04d}"
+        item_str_id = f"07{SEP}{nano_tune_obj['m_iReqItemID']:04d}"
         skill_id = nano_tune_obj["m_iSkillID"]
         skill_obj = skill_data_list[skill_id]
 
@@ -1183,7 +1184,7 @@ def construct_vendor_data(sources: dict) -> None:
         for vendor_item_obj in vendor_item_data_group:
             item_id = vendor_item_obj["m_iitemID"]
             item_type_id = vendor_item_obj["m_iItemType"]
-            item_str_id = f"{item_type_id:02d}:{item_id:04d}"
+            item_str_id = f"{item_type_id:02d}{SEP}{item_id:04d}"
 
             if item_str_id not in sources["item_info"]:
                 continue
@@ -1234,7 +1235,7 @@ def construct_ep_instance_data(sources: dict) -> None:
                 5 - i: {
                     "ItemTypeID": 9,
                     "ItemID": item_id,
-                    "Item": sources["item_info"][f"09:{item_id:04d}"],
+                    "Item": sources["item_info"][f"09{SEP}{item_id:04d}"],
                     "RankScore": rank_score,
                 }
                 for i, (rank_score, item_id) in enumerate(zip(racing_obj["RankScores"], racing_obj["Rewards"]))
@@ -1261,7 +1262,7 @@ def construct_code_item_data(sources: dict) -> None:
             item_reference_obj = item_references[item_reference_id]
             item_id = item_reference_obj["ItemID"]
             item_type_id = item_reference_obj["Type"]
-            item_str_id = f"{item_type_id:02d}:{item_id:04d}"
+            item_str_id = f"{item_type_id:02d}{SEP}{item_id:04d}"
 
             if item_str_id not in sources["item_info"]:
                 continue
@@ -1746,7 +1747,7 @@ def construct_crate_content_source_data(sources: dict) -> None:
     sources["crate_content_source_info"] = defaultdict(list)
 
     item_ref_to_str_id = {
-        ir_id: "{Type:02d}:{ItemID:04d}".format(**ir)
+        ir_id: "{Type:02d}{sep}{ItemID:04d}".format(**ir, sep=SEP)
         for ir_id, ir in sources["drops_map"]["ItemReferences"].items()
     }
     real_gender_map = {
@@ -1888,7 +1889,7 @@ def construct_item_source_data(sources: dict) -> None:
 
     for item_str_id, item_obj in sources["item_info"].items():
         item_name = item_obj["Name"]
-        item_tag = f"{item_str_id}:{item_name}"
+        item_tag = f"{item_str_id}{SEP}{item_name}"
 
         # code item source
         for code_item_obj in sources["code_item_source_info"].get(item_str_id, []):
@@ -1917,14 +1918,14 @@ def construct_item_source_data(sources: dict) -> None:
             crate_content_objs = sources["crate_content_source_info"].get(str_id, [])
 
             if not crate_content_objs:
-                type_id, item_id = map(int, str_id.split(":"))
+                type_id, item_id = map(int, str_id.split(SEP))
                 return sources["crate_source_info"].get(item_id, []) if type_id == 9 else []
 
             crate_sources = []
 
             for crate_content_obj in crate_content_objs:
                 containing_crate_id = crate_content_obj["ContainingCrateID"]
-                containing_crate_str_id = f"09:{containing_crate_id:04d}"
+                containing_crate_str_id = f"09{SEP}{containing_crate_id:04d}"
                 boy_probability = Fraction(crate_content_obj["BoyOdds"])
                 girl_probability = Fraction(crate_content_obj["GirlOdds"])
 
@@ -1959,7 +1960,7 @@ def construct_source_item_data(sources: dict) -> None:
     sources["source_item_info"] = defaultdict(lambda: defaultdict(dict))
 
     for item_tag, source_obj_list in sources["item_source_info"].items():
-        last_sep_idx = item_tag.rfind(":")
+        last_sep_idx = item_tag.rfind(SEP)
         item_obj = sources["item_info"][item_tag[:last_sep_idx]]
 
         for source_obj in source_obj_list:
@@ -1968,7 +1969,7 @@ def construct_source_item_data(sources: dict) -> None:
 
             source_id = source_info[SOURCE_TYPE_ID_FIELD_MAP[source_type_id]]
             source_name = source_info[SOURCE_TYPE_NAME_FIELD_MAP[source_type_id]] if source_type_id != "CodeItem" else ""
-            source_tag = f"{source_id}{':' + source_name if source_name else ''}"
+            source_tag = f"{source_id}{SEP + source_name if source_name else ''}"
 
             sources["source_item_info"][source_type_id][source_tag][item_tag] = {
                 "Item": item_obj,
@@ -2199,7 +2200,7 @@ def filter_sources(sources: dict) -> None:
         mission_obj["Barkers"] = {
             npc_tag: barker_text
             for npc_tag, barker_text in mission_obj["Barkers"].items()
-            if int(npc_tag.split(":")[0]) in sources["valid_npc_types"]
+            if int(npc_tag.split(SEP)[0]) in sources["valid_npc_types"]
         }
 
     for area_obj_list in sources["area_info"].values():
