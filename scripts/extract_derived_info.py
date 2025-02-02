@@ -228,6 +228,25 @@ TRANSPORTATION_MOVE_TYPES = [
     "MonkeySkyway",
     "Slider",
 ]
+SOURCE_TYPE_ID_FIELD_MAP = {
+    "CodeItem": "Code",
+    "Vendor": "NPCTypeID",
+    "Egg": "EggTypeID",
+    "Racing": "InstanceID",
+    "Mob": "MobTypeID",
+    "Event": "EventID",
+    "MissionReward": "MissionID",
+    "MissionRewardCrate": "MissionID",
+}
+SOURCE_TYPE_NAME_FIELD_MAP = {
+    "Vendor": "NPCName",
+    "Egg": "EggName",
+    "Racing": "InstanceName",
+    "Mob": "MobName",
+    "Event": "EventName",
+    "MissionReward": "MissionName",
+    "MissionRewardCrate": "MissionName",
+}
 
 
 def patch(base_obj: dict, patch_obj: dict) -> None:
@@ -1815,6 +1834,7 @@ def construct_crate_source_data(sources: dict) -> None:
             sources["crate_source_info"][crate_id].append({
                 "SourceType": "Vendor",
                 "Source": vendor_obj,
+                "SourcePrice": vendor_obj["Price"],
             })
 
         # egg crate source
@@ -1829,6 +1849,8 @@ def construct_crate_source_data(sources: dict) -> None:
             sources["crate_source_info"][crate_id].append({
                 "SourceType": "Racing",
                 "Source": racing_obj,
+                "SourceStars": racing_obj["RequiredStars"],
+                "SourceMinScore": racing_obj["RequiredScore"],
             })
 
         # mob crate source
@@ -1864,24 +1886,28 @@ def construct_crate_source_data(sources: dict) -> None:
 def construct_item_source_data(sources: dict) -> None:
     sources["item_source_info"] = defaultdict(list)
 
-    for item_str_id in sources["item_info"]:
+    for item_str_id, item_obj in sources["item_info"].items():
+        item_name = item_obj["Name"]
+        item_tag = f"{item_str_id}:{item_name}"
+
         # code item source
         for code_item_obj in sources["code_item_source_info"].get(item_str_id, []):
-            sources["item_source_info"][item_str_id].append({
+            sources["item_source_info"][item_tag].append({
                 "SourceType": "CodeItem",
                 "Source": code_item_obj,
             })
 
         # vendor npc crate source
         for vendor_obj in sources["vendor_source_info"].get(item_str_id, []):
-            sources["item_source_info"][item_str_id].append({
+            sources["item_source_info"][item_tag].append({
                 "SourceType": "Vendor",
                 "Source": vendor_obj,
+                "SourcePrice": vendor_obj["Price"],
             })
 
         # mission reward crate source
         for mission_reward_obj in sources["mission_reward_source_info"].get(item_str_id, []):
-            sources["item_source_info"][item_str_id].append({
+            sources["item_source_info"][item_tag].append({
                 "SourceType": "MissionReward",
                 "Source": mission_reward_obj,
             })
@@ -1904,6 +1930,7 @@ def construct_item_source_data(sources: dict) -> None:
 
                 for crate_source_obj in source_recurse(containing_crate_str_id):
                     source_type = crate_source_obj["SourceType"]
+
                     source_result = {
                         "SourceType": source_type if source_type != "MissionReward" else "MissionRewardCrate",
                         "Source": crate_source_obj["Source"],
@@ -1912,12 +1939,41 @@ def construct_item_source_data(sources: dict) -> None:
                         "SourceBoyProbability": float(boy_probability) * crate_source_obj.get("SourceBoyProbability", 1.0),
                         "SourceGirlProbability": float(girl_probability) * crate_source_obj.get("SourceGirlProbability", 1.0),
                     }
+
+                    if source_type == "Vendor":
+                        source_result["SourcePrice"] = crate_source_obj["SourcePrice"]
+
+                    if source_type == "Racing":
+                        source_result["SourceStars"] = crate_source_obj["SourceStars"]
+                        source_result["SourceMinScore"] = crate_source_obj["SourceMinScore"]
+
                     crate_sources.append(source_result)
 
             return crate_sources
 
         if (recursed_sources := source_recurse(item_str_id)):
-            sources["item_source_info"][item_str_id].extend(recursed_sources)
+            sources["item_source_info"][item_tag].extend(recursed_sources)
+
+
+def construct_source_item_data(sources: dict) -> None:
+    sources["source_item_info"] = defaultdict(lambda: defaultdict(dict))
+
+    for item_tag, source_obj_list in sources["item_source_info"].items():
+        last_sep_idx = item_tag.rfind(":")
+        item_obj = sources["item_info"][item_tag[:last_sep_idx]]
+
+        for source_obj in source_obj_list:
+            source_type_id = source_obj["SourceType"]
+            source_info = source_obj["Source"]
+
+            source_id = source_info[SOURCE_TYPE_ID_FIELD_MAP[source_type_id]]
+            source_name = source_info[SOURCE_TYPE_NAME_FIELD_MAP[source_type_id]] if source_type_id != "CodeItem" else ""
+            source_tag = f"{source_id}{':' + source_name if source_name else ''}"
+
+            sources["source_item_info"][source_type_id][source_tag][item_tag] = {
+                "Item": item_obj,
+                **{k: v for k, v in source_obj.items() if k not in ["SourceType", "Source"]},
+            }
 
 
 def fill_area_info(sources: dict) -> None:
@@ -2197,6 +2253,7 @@ def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path
     construct_crate_content_source_data(sources)
     construct_crate_source_data(sources)
     construct_item_source_data(sources)
+    construct_source_item_data(sources)
     fill_area_info(sources)
     construct_valid_id_sets(sources)
     filter_sources(sources)
@@ -2218,6 +2275,7 @@ def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path
         "code_item_info",
         "transportation_info",
         "item_source_info",
+        "source_item_info",
     ]
 
     for key in source_keys:
