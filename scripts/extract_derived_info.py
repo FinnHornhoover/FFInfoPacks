@@ -1,3 +1,4 @@
+import csv
 import sys
 import json
 from collections import defaultdict
@@ -537,7 +538,7 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
         passive_skill_obj = skill_data_list[npc_data["m_iPassiveBuff"]]
 
         npc_info_dict = {
-            "TypeID": npc_type_id,
+            "ID": npc_type_id,
             "Name": npc_name,
             "Comment": npc_comment,
             "Icon": icon_name,
@@ -815,7 +816,11 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             "MissionJournalNPCIcon": task_journal_npc_icon,
             "Level": mission_obj["m_iCTRReqLvMin"],
             "RequiredNanoID": task_required_nano_id,
-            "RequiredNano": "{m_strName} - {m_strComment1}".format(**nano_string_list[task_required_nano_obj["m_iNanoName"]]),
+            "RequiredNano": (
+                "{m_strName} - {m_strComment1}".format(**nano_string_list[task_required_nano_obj["m_iNanoName"]])
+                if task_required_nano_id > 0
+                else "None"
+            ),
             "RequiredGuideID": mission_obj["m_iCSTReqGuide"],
             "RequiredGuide": MISSION_GUIDE_TYPES[mission_obj["m_iCSTReqGuide"]],
             "RequiredMissionIDs": mission_obj["m_iCSTReqMission"],
@@ -832,7 +837,11 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "FM": 0,
                 "Taros": 0,
                 "NanoRewardID": task_end_nano_id,
-                "NanoReward": "{m_strName} - {m_strComment1}".format(**nano_string_list[task_end_nano_obj["m_iNanoName"]]),
+                "NanoReward": (
+                    "{m_strName} - {m_strComment1}".format(**nano_string_list[task_end_nano_obj["m_iNanoName"]])
+                    if task_end_nano_id > 0
+                    else "None"
+                ),
             },
         }
         sources["mission_info"][mission_id] = mission_info_obj
@@ -1217,6 +1226,7 @@ def construct_ep_instance_data(sources: dict) -> None:
             "Name": instance_obj["Name"],
             "ZoneX": instance_obj["ZoneX"],
             "ZoneY": instance_obj["ZoneY"],
+            "AreaZone": instance_obj["AreaZone"],
             "OriginalScoreCap": instance_obj["EPMaxScore"],
             "ScoreCap": racing_obj["ScoreCap"],
             "TimeLimitSeconds": racing_obj["TimeLimit"],
@@ -2219,6 +2229,279 @@ def filter_sources(sources: dict) -> None:
                 area_obj["InfectedZone"] = None
 
 
+def export_json_source_info(out_info_dir: Path, sources: dict) -> None:
+    source_keys = [
+        "item_info",
+        "npc_type_info",
+        "mob_type_info",
+        "npc_info",
+        "mob_info",
+        "egg_type_info",
+        "egg_info",
+        "mission_info",
+        "instance_info",
+        "nano_info",
+        "area_info",
+        "vendor_info",
+        "infected_zone_info",
+        "code_item_info",
+        "transportation_info",
+        "item_source_info",
+        "source_item_info",
+    ]
+
+    for key in source_keys:
+        with open(out_info_dir / f"{key}.json", "w") as f:
+            json.dump(sources[key], f, indent=4, sort_keys=True)
+
+
+def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
+    def short_item_str(v: dict) -> str:
+        return f"{v['ItemID']} {v['Name']} ({v['DisplayType']} Lv{v['ContentLevel']} {v['Rarity']})"
+
+    csv_fields = {
+        "item_info": {
+            "Type": "Type",
+            "WeaponType": "Weapon Type",
+            "ItemID": "ID",
+            "Name": "Name",
+            "ContentLevel": "Level",
+            "Rarity": "Rarity",
+            "Tradeable": "Tradeable",
+            "Sellable": "Vendor Sellable",
+            "Range": "Range",
+            "SingleDamage": "Damage",
+            "MultiDamage": "Damage (Multi)",
+            "Defense": "Defense",
+            "VehicleClass": "Vehicle Speed",
+            "ItemPrice": "Price",
+            "ItemSellPrice": "Sell Price",
+            "Description": "Description",
+        },
+        "code_item_info": {
+            "Code": "Code",
+            "Items": "Items",
+        },
+        "egg_info": {
+            "ID": "ID",
+            "TypeID": "Type ID",
+            "TypeName": "Type",
+            "InstanceID": "Instance",
+            "AreaZone": "Area",
+            "X": "X",
+            "Y": "Y",
+            "Z": "Z",
+        },
+        "egg_type_info": {
+            "ID": "ID",
+            "Name": "Type",
+            "CrateID": "Crate ID",
+            "Effect": "Effect",
+            "EffectDuration": "Effect Duration Seconds",
+            "RespawnTime": "Respawn Time",
+        },
+        "infected_zone_info": {
+            "ID": "ID",
+            "Name": "Name",
+            "AreaZone": "Area",
+            "ZoneX": "X Zone",
+            "ZoneY": "Y Zone",
+            "ScoreCap": "Score Cap",
+            "TotalPods": "Total Pods",
+            "TimeLimit": "Time Limit",
+            "ScaleFactor": "Scale Factor",
+            "PodFactor": "Pod Factor",
+            "TimeFactor": "Time Factor",
+            "StarsToItemRewards": "Rewards",
+        },
+        "instance_info": {
+            "ID": "ID",
+            "EPID": "Infected Zone ID",
+            "Name": "Name",
+            "AreaZone": "Area",
+            "ZoneX": "X Zone",
+            "ZoneY": "Y Zone",
+        },
+        "mission_info": {
+            "ID": "ID",
+            "Name": "Name",
+            "Level": "Level",
+            "Type": "Type",
+            "Difficulty": "Difficulty",
+            "MissionStartNPCName": "Start NPC",
+            "MissionJournalNPCName": "Journal NPC",
+            "MissionEndNPCName": "End NPC",
+            "RequiredNano": "Required Nano",
+            "RequiredGuide": "Required Guide",
+            "RequiredMissions": "Required Missions",
+            "Rewards": "Rewards",
+            "Tasks": "Tasks",
+        },
+        "mob_info": {
+            "ID": "ID",
+            "TypeID": "Type ID",
+            "TypeName": "Name",
+            "FollowsMobID": "Follows",
+            "InstanceID": "Instance",
+            "AreaZone": "Area",
+            "HP": "HP",
+            "X": "X",
+            "Y": "Y",
+            "Z": "Z",
+            "Angle": "Angle",
+        },
+        "mob_type_info": {
+            "ID": "ID",
+            "Name": "Name",
+            "Level": "Level",
+            "StandardHP": "HP",
+            "Accuracy": "Accuracy",
+            "Protection": "Protection",
+            "Radius": "Radius",
+            "ActiveSkill": "Active Skill",
+            "SupportSkill": "Support Skill",
+            "AttackPower": "Attack Power",
+            "SightRange": "Sight Range",
+            "IdleRange": "Idle Range",
+            "CombatRange": "Combat Range",
+            "AttackRange": "Attack Range",
+            "ActiveSkillRange": "Active Skill Range",
+            "CorruptionRange": "Corruption Range",
+            "EruptionRange": "Eruption Range",
+            "EruptionArea": "Eruption Area",
+            "WalkSpeed": "Walk Speed",
+            "RunSpeed": "Run Speed",
+            "RespawnTime": "Respawn Time",
+        },
+        "nano_info": {
+            "ID": "ID",
+            "Name": "Name",
+            "Comment": "Comment",
+            "NanoType": "Type",
+            "NanoPowers": "Powers",
+        },
+        "npc_info": {
+            "ID": "ID",
+            "TypeID": "Type ID",
+            "TypeName": "Name",
+            "InstanceID": "Instance",
+            "AreaZone": "Area",
+            "X": "X",
+            "Y": "Y",
+            "Z": "Z",
+            "Angle": "Angle",
+        },
+        "npc_type_info": {
+            "ID": "ID",
+            "HNPCTypeID": "HNPC ID",
+            "Name": "Name",
+            "Category": "Category",
+            "Comment": "Comment",
+            "Barkers": "Barkers",
+        },
+        "transportation_info": {
+            "NPCID": "NPC ID",
+            "NPCType": "NPC Name",
+            "MoveType": "Move Type",
+            "StartLocation": "Start Location",
+            "Transportations": "Destinations",
+        },
+        "vendor_info": {
+            "NPCID": "NPC",
+            "NPCs": "Locations",
+            "Items": "Items",
+        },
+    }
+    converters = {
+        "code_item_info": {
+            "Items": lambda obj: "\n".join(map(short_item_str, obj["Items"].values())),
+        },
+        "egg_info": {
+            "TypeName": lambda obj: f"{obj['TypeName']} ({obj['TypeComment']} {obj['TypeExtraComment']})",
+            "InstanceID": lambda obj: sources["instance_info"].get(obj["InstanceID"], {"Name": "World"})["Name"],
+        },
+        "egg_type_info": {
+            "Name": lambda obj: f"{obj['Name']} ({obj['Comment']} {obj['ExtraComment']})",
+        },
+        "infected_zone_info": {
+            "StarsToItemRewards": lambda obj: "\n".join(
+                f"{v['Item']['ItemID']} {v['Item']['Name']} {v['Item']['Description']} (Min. Score: {v['RankScore']})"
+                for v in obj["StarsToItemRewards"].values()
+            ),
+        },
+        "mission_info": {
+            "RequiredMissions": lambda obj: "\n".join(f"{k} {v}" for k, v in obj["RequiredMissions"].items()),
+            "Rewards": lambda obj: "\n".join(
+                (
+                    [f"{obj['Rewards']['NanoReward']}"]
+                    if obj["Rewards"]["NanoRewardID"] > 0
+                    else [f"Taros: {obj['Rewards']['Taros']} FM: {obj['Rewards']['FM']}"]
+                ) +
+                [
+                    short_item_str(v)
+                    for v in obj["Rewards"]["Items"]
+                ]
+            ),
+            "Tasks": lambda obj: "\n".join(
+                f"{v['ID']} {v['CurrentObjective']}"
+                for v in obj["Tasks"].values()
+            ),
+        },
+        "mob_info": {
+            "InstanceID": lambda obj: sources["instance_info"].get(obj["InstanceID"], {"Name": "World"})["Name"],
+        },
+        "nano_info": {
+            "NanoPowers": lambda obj: "\n".join(
+                f"{k} {v['TypeName']} - {v['SkillName']} - {v['Comment']}"
+                for k, v in obj["NanoPowers"].items()
+            ),
+        },
+        "npc_info": {
+            "InstanceID": lambda obj: sources["instance_info"].get(obj["InstanceID"], {"Name": "World"})["Name"],
+        },
+        "npc_type_info": {
+            "Barkers": lambda obj: "\n".join(v for v in obj["Barkers"] if v),
+        },
+        "transportation_info": {
+            "NPCType": lambda obj: f"{obj['NPCType']['ID']} {obj['NPCType']['Name']}" if obj["NPCType"] else "",
+            "StartLocation": lambda obj: (
+                f"{obj['StartLocation']['ID']} {obj['StartLocation']['AreaZone']}\n"
+                f"X: {obj['StartLocation']['X']} Y: {obj['StartLocation']['Y']} Z: {obj['StartLocation']['Z']}"
+            ),
+            "Transportations": lambda obj: "\n".join(
+                f"{v['ID']} {v['AreaZone']} (Speed: {v['SpeedClass']} X: {v['X']} Y: {v['Y']} Z: {v['Z']} Taros: {v['Cost']})"
+                for v in obj["Transportations"].values()
+            ),
+        },
+        "vendor_info": {
+            "NPCID": lambda obj: f"{obj['NPCID']} {sources['npc_type_info'][obj['NPCID']]['Name']}",
+            "NPCs": lambda obj: "\n".join(
+                f"{k} {v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
+                for k, v in obj["NPCs"].items()
+            ),
+            "Items": lambda obj: "\n".join(
+                f"{short_item_str(v['Item'])} Taros: {v['Price']}"
+                for v in obj["Items"].values()
+            ),
+        },
+    }
+
+    for key, field_map in csv_fields.items():
+        with open(out_info_dir / f"{key}_table.csv", "w") as f:
+            writer = csv.DictWriter(f, fieldnames=list(field_map.values()))
+            writer.writeheader()
+
+            for obj in sources[key].values():
+                objects = list(obj.values()) if key in ["egg_info", "npc_info", "mob_info"] else [obj]
+
+                for o in objects:
+                    writer.writerow({
+                        field_map[k]: converters.get(key, {}).get(k, itemgetter(k))(o)
+                        for k in o
+                        if k in field_map
+                    })
+
+
 def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path, patch_names: list[str]):
     out_info_dir.mkdir(parents=True, exist_ok=True)
 
@@ -2259,29 +2542,8 @@ def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path
     construct_valid_id_sets(sources)
     filter_sources(sources)
 
-    source_keys = [
-        "item_info",
-        "npc_type_info",
-        "mob_type_info",
-        "npc_info",
-        "mob_info",
-        "egg_type_info",
-        "egg_info",
-        "mission_info",
-        "instance_info",
-        "nano_info",
-        "area_info",
-        "vendor_info",
-        "infected_zone_info",
-        "code_item_info",
-        "transportation_info",
-        "item_source_info",
-        "source_item_info",
-    ]
-
-    for key in source_keys:
-        with open(out_info_dir / f"{key}.json", "w") as f:
-            json.dump(sources[key], f, indent=4, sort_keys=True)
+    export_json_source_info(out_info_dir, sources)
+    export_csv_source_info(out_info_dir, sources)
 
 
 def main(config_path: Path, output_root: Path, server_data_root: Path):
