@@ -213,7 +213,7 @@ MISSION_MESSAGE_TYPES = {
     4: "Email",
     6: "PopUpAndEmail",
 }
-NANO_TYPES = [
+NANO_MOB_TYPES = [
     "Adaptium",
     "Blastons",
     "Cosmix",
@@ -552,6 +552,8 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
             sources["mob_type_info"][npc_type_id] = {
                 **npc_info_dict,
                 "Level": npc_data["m_iNpcLevel"],
+                "ColorTypeID": npc_data["m_iNpcStyle"],
+                "ColorType": NANO_MOB_TYPES[npc_data["m_iNpcStyle"]],
                 "StandardHP": npc_data["m_iHP"],
                 "RespawnSeconds": npc_data["m_iRegenTime"] * 0.1,
                 "RespawnTime": humanize.precisedelta(npc_data["m_iRegenTime"] * 0.1),
@@ -1159,7 +1161,7 @@ def construct_nano_data(sources: dict) -> None:
             "Name": nano_name_obj["m_strName"],
             "Comment": nano_name_obj["m_strComment"],
             "NanoTypeID": nano_data_obj["m_iStyle"],
-            "NanoType": NANO_TYPES[nano_data_obj["m_iStyle"]],
+            "NanoType": NANO_MOB_TYPES[nano_data_obj["m_iStyle"]],
             "NanoPowers": {
                 tune_id: sources["nano_power_info"][tune_id]
                 for tune_id in nano_data_obj["m_iTune"]
@@ -1792,7 +1794,6 @@ def construct_crate_content_source_data(sources: dict) -> None:
     for crate_id, crate_obj in sources["drops_map"]["Crates"].items():
         itemset_obj = sources["drops_map"]["ItemSets"][crate_obj["ItemSetID"]]
         rarity_weights_obj = sources["drops_map"]["RarityWeights"][crate_obj["RarityWeightID"]]
-        total_weight = sum(rarity_weights_obj["Weights"])
 
         itemset_view = itemset_views[itemset_obj["ItemSetID"]]
         boy_rarity_weights = itemset_view[GENDERS.index("Male")]
@@ -1801,8 +1802,14 @@ def construct_crate_content_source_data(sources: dict) -> None:
         boy_probabilities = defaultdict(Fraction)
         girl_probabilities = defaultdict(Fraction)
 
+        total_weight = sum([
+            weight
+            for rarity_id, weight in zip(range(1, 5), rarity_weights_obj["Weights"])
+            if sum(boy_rarity_weights[rarity_id].values()) > 0 or sum(girl_rarity_weights[rarity_id].values()) > 0
+        ])
+
         for rarity_id, weight in zip(range(1, 5), rarity_weights_obj["Weights"]):
-            rarity_probability = Fraction(weight, total_weight)
+            rarity_probability = Fraction(weight, total_weight) if total_weight > 0 else Fraction(0)
             boy_rarity_ir_weights = boy_rarity_weights[rarity_id]
             girl_rarity_ir_weights = girl_rarity_weights[rarity_id]
             sum_boy_rarity_ir_weights = max(1, sum(boy_rarity_ir_weights.values()))
@@ -2354,6 +2361,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "ID": "ID",
             "Name": "Name",
             "Level": "Level",
+            "ColorType": "Color Type",
             "StandardHP": "HP",
             "Accuracy": "Accuracy",
             "Protection": "Protection",
@@ -2486,6 +2494,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         },
     }
 
+    # export regular tables
     for key, field_map in csv_fields.items():
         with open(out_info_dir / f"{key}_table.csv", "w") as f:
             writer = csv.DictWriter(f, fieldnames=list(field_map.values()))
@@ -2500,6 +2509,60 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                         for k in o
                         if k in field_map
                     })
+
+    # export source to item table
+    source_fields = {
+        "SourceBoyOdds": "Odds (Boy)",
+        "SourceGirlOdds": "Odds (Girl)",
+        "SourcePrice": "Price",
+        "SourceStars": "Stars",
+        "SourceMinScore": "Min. Score",
+    }
+    extra_info_getters = {
+        "Mob": lambda src_id: "Lv{Level} {ColorType}".format(
+            **sources["mob_type_info"][src_id]
+        ),
+        "Vendor": lambda src_id: "\n".join(
+            f"{v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
+            for v in sources["vendor_info"][src_id]["NPCs"].values()
+        ),
+        "MissionReward": lambda src_id: "\n".join(
+            f"{sources['instance_info'].get(v['InstanceID'], {'Name': 'World'})['Name']} {v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
+            for v in sources["npc_info"].get(sources["mission_info"].get(src_id, {}).get("MissionStartNPCID", 0), {}).values()
+        ),
+        "MissionRewardCrate": lambda src_id: "\n".join(
+            f"{sources['instance_info'].get(v['InstanceID'], {'Name': 'World'})['Name']} {v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
+            for v in sources["npc_info"].get(sources["mission_info"].get(src_id, {}).get("MissionStartNPCID", 0), {}).values()
+        ),
+        "Egg": lambda src_id: "\n".join(
+            f"{sources['instance_info'].get(v['InstanceID'], {'Name': 'World'})['Name']} {v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
+            for v in sources["egg_info"][src_id].values()
+        ),
+        "Racing": lambda src_id: "{AreaZone} Pods: {TotalPods} Time Limit: {TimeLimit}".format(
+            **sources["infected_zone_info"][src_id]
+        ),
+    }
+
+    with open(out_info_dir / "source_item_info_table.csv", "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["Source Type", "Source ID", "Source Extra Info", "Items", "Items Extra Info"])
+        writer.writeheader()
+
+        for source_type, source_items in sources["source_item_info"].items():
+            for source_id, items in source_items.items():
+                writer.writerow({
+                    "Source Type": source_type,
+                    "Source ID": source_id.replace(SEP, " "),
+                    "Source Extra Info": (
+                        extra_info_getters[source_type](int(source_id.split(SEP)[0]))
+                        if source_type in extra_info_getters
+                        else ""
+                    ),
+                    "Items": "\n".join(short_item_str(v["Item"]) for v in items.values()),
+                    "Items Extra Info": "\n".join(
+                        " ".join(f"{f_v}: {v[f_k]}" for f_k, f_v in source_fields.items() if f_k in v)
+                        for v in items.values()
+                    ),
+                })
 
 
 def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path, patch_names: list[str]):
