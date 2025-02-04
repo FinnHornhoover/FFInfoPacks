@@ -1969,9 +1969,45 @@ def construct_item_source_data(sources: dict) -> None:
 
             return crate_sources
 
+        def source_merge_key(source_obj: dict) -> tuple[int, ...]:
+            if source_obj["SourceType"] != "Mob":
+                return (0, 0, 0, 0, 0, 0, 0)
+
+            return (
+                source_obj["Source"]["MobTypeID"],
+                source_obj["Source"]["InstanceID"],
+                source_obj["Source"]["LocationLimits"]["MinX"],
+                source_obj["Source"]["LocationLimits"]["MinY"],
+                source_obj["Source"]["LocationLimits"]["MinZ"],
+                source_obj["Source"]["LocationLimits"]["MaxX"],
+                source_obj["Source"]["LocationLimits"]["MaxY"],
+                source_obj["Source"]["LocationLimits"]["MaxZ"],
+            )
+
         if (recursed_sources := source_recurse(item_str_id)):
-            # TODO: merge crates from the same mob
-            sources["item_source_info"][item_tag].extend(recursed_sources)
+            mob_id_location_groupped_sources = {
+                mob_id_location: list(source_iter)
+                for mob_id_location, source_iter in groupby(
+                    sorted(recursed_sources, key=source_merge_key),
+                    key=source_merge_key,
+                )
+            }
+
+            for mob_id_location, source_list in mob_id_location_groupped_sources.items():
+                if mob_id_location[0] == 0 or len(source_list) < 2:
+                    sources["item_source_info"][item_tag].extend(source_list)
+                    continue
+
+                merged_source = {
+                    "SourceType": "Mob",
+                    "Source": source_list[0]["Source"],
+                    "SourceBoyOdds": str(sum(Fraction(source_obj["SourceBoyOdds"]) for source_obj in source_list)),
+                    "SourceGirlOdds": str(sum(Fraction(source_obj["SourceGirlOdds"]) for source_obj in source_list)),
+                    "SourceBoyProbability": sum(source_obj["SourceBoyProbability"] for source_obj in source_list),
+                    "SourceGirlProbability": sum(source_obj["SourceGirlProbability"] for source_obj in source_list),
+                }
+
+                sources["item_source_info"][item_tag].append(merged_source)
 
 
 def construct_source_item_data(sources: dict) -> None:
@@ -2267,6 +2303,17 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
     def short_item_str(v: dict) -> str:
         return f"{v['ItemID']} {v['Name']} ({v['DisplayType']} Lv{v['ContentLevel']} {v['Rarity']})"
 
+    def get_instance_name(v: dict) -> str:
+        return sources["instance_info"].get(v["InstanceID"], {"Name": "World"})["Name"]
+
+    def get_location_str(v: dict) -> str:
+        if "LocationLimits" in v:
+            return f"{v['AreaZone']} X {v['MinX']}:{v['MaxX']} Y {v['MinY']}:{v['MaxY']} Z {v['MinZ']}:{v['MaxZ']}"
+        return f"{v['AreaZone']} X {v['X']} Y {v['Y']} Z {v['Z']}"
+
+    def get_location_instance_str(v: dict) -> str:
+        return f"{get_instance_name(v)} {get_location_str(v)}"
+
     csv_fields = {
         "item_info": {
             "Type": "Type",
@@ -2427,7 +2474,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         },
         "egg_info": {
             "TypeName": lambda obj: f"{obj['TypeName']} ({obj['TypeComment']} {obj['TypeExtraComment']})",
-            "InstanceID": lambda obj: sources["instance_info"].get(obj["InstanceID"], {"Name": "World"})["Name"],
+            "InstanceID": get_instance_name,
         },
         "egg_type_info": {
             "Name": lambda obj: f"{obj['Name']} ({obj['Comment']} {obj['ExtraComment']})",
@@ -2457,7 +2504,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             ),
         },
         "mob_info": {
-            "InstanceID": lambda obj: sources["instance_info"].get(obj["InstanceID"], {"Name": "World"})["Name"],
+            "InstanceID": get_instance_name,
         },
         "nano_info": {
             "NanoPowers": lambda obj: "\n".join(
@@ -2466,28 +2513,22 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             ),
         },
         "npc_info": {
-            "InstanceID": lambda obj: sources["instance_info"].get(obj["InstanceID"], {"Name": "World"})["Name"],
+            "InstanceID": get_instance_name,
         },
         "npc_type_info": {
             "Barkers": lambda obj: "\n".join(v for v in obj["Barkers"] if v),
         },
         "transportation_info": {
             "NPCType": lambda obj: f"{obj['NPCType']['ID']} {obj['NPCType']['Name']}" if obj["NPCType"] else "",
-            "StartLocation": lambda obj: (
-                f"{obj['StartLocation']['ID']} {obj['StartLocation']['AreaZone']}\n"
-                f"X: {obj['StartLocation']['X']} Y: {obj['StartLocation']['Y']} Z: {obj['StartLocation']['Z']}"
-            ),
+            "StartLocation": lambda obj: f"{obj['StartLocation']['ID']} {get_location_str(obj['StartLocation'])}",
             "Transportations": lambda obj: "\n".join(
-                f"{v['ID']} {v['AreaZone']} (Speed: {v['SpeedClass']} X: {v['X']} Y: {v['Y']} Z: {v['Z']} Taros: {v['Cost']})"
+                f"{v['ID']} {get_location_str(v)} (Speed: {v['SpeedClass']} Taros: {v['Cost']})"
                 for v in obj["Transportations"].values()
             ),
         },
         "vendor_info": {
             "NPCID": lambda obj: f"{obj['NPCID']} {sources['npc_type_info'][obj['NPCID']]['Name']}",
-            "NPCs": lambda obj: "\n".join(
-                f"{k} {v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
-                for k, v in obj["NPCs"].items()
-            ),
+            "NPCs": lambda obj: "\n".join(f"{k} {get_location_instance_str(v)}" for k, v in obj["NPCs"].items()),
             "Items": lambda obj: "\n".join(
                 f"{short_item_str(v['Item'])} Taros: {v['Price']}"
                 for v in obj["Items"].values()
@@ -2525,22 +2566,22 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             **sources["mob_type_info"][src_id]
         ),
         "Vendor": lambda src_id: "\n".join(
-            f"{v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
+            get_location_instance_str(v)
             for v in sources["vendor_info"][src_id]["NPCs"].values()
         ),
         "MissionReward": lambda src_id: "\n".join(
-            f"{sources['instance_info'].get(v['InstanceID'], {'Name': 'World'})['Name']} {v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
+            get_location_instance_str(v)
             for v in sources["npc_info"].get(sources["mission_info"].get(src_id, {}).get("MissionStartNPCID", 0), {}).values()
         ),
         "MissionRewardCrate": lambda src_id: "\n".join(
-            f"{sources['instance_info'].get(v['InstanceID'], {'Name': 'World'})['Name']} {v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
+            get_location_instance_str(v)
             for v in sources["npc_info"].get(sources["mission_info"].get(src_id, {}).get("MissionStartNPCID", 0), {}).values()
         ),
         "Egg": lambda src_id: "\n".join(
-            f"{sources['instance_info'].get(v['InstanceID'], {'Name': 'World'})['Name']} {v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
+            get_location_instance_str(v)
             for v in sources["egg_info"][src_id].values()
         ),
-        "Racing": lambda src_id: "{AreaZone}\nPods: {TotalPods}\nTime Limit: {TimeLimit}".format(
+        "Racing": lambda src_id: "{AreaZone}\nPods: {TotalPods} Time Limit: {TimeLimit}".format(
             **sources["infected_zone_info"][src_id]
         ),
     }
@@ -2579,9 +2620,10 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             source_extra_info_strings = []
 
             for source_object in source_object_list:
-                source_type = source_object['SourceType']
-                source_id = source_object['Source'][SOURCE_TYPE_ID_FIELD_MAP[source_type]]
-                source_name = source_object['Source'].get(SOURCE_TYPE_NAME_FIELD_MAP.get(source_type), '')
+                source_type = source_object["SourceType"]
+                source_info = source_object["Source"]
+                source_id = source_info[SOURCE_TYPE_ID_FIELD_MAP[source_type]]
+                source_name = source_info.get(SOURCE_TYPE_NAME_FIELD_MAP.get(source_type), "")
 
                 source_strings.append(f"{source_type} {source_id} {source_name}".strip())
                 source_extra_info_strings.append(
