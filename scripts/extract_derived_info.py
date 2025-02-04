@@ -804,7 +804,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             "ID": mission_id,
             "TypeID": mission_obj["m_iHMissionType"],
             "Type": MISSION_TYPES[mission_obj["m_iHMissionType"]],
-            "Name": mission_string_list[mission_obj["m_iHMissionName"]]["m_pstrNameString"],
+            "Name": mission_string_list[mission_obj["m_iHMissionName"]]["m_pstrNameString"].replace("\n", " "),
             "DifficultyID": mission_obj["m_iHDifficultyType"],
             "Difficulty": MISSION_DIFFICULTY_TYPES[mission_obj["m_iHDifficultyType"]],
             "MissionStartNPCID": 0,
@@ -1970,6 +1970,7 @@ def construct_item_source_data(sources: dict) -> None:
             return crate_sources
 
         if (recursed_sources := source_recurse(item_str_id)):
+            # TODO: merge crates from the same mob
             sources["item_source_info"][item_tag].extend(recursed_sources)
 
 
@@ -2510,7 +2511,6 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                         if k in field_map
                     })
 
-    # export source to item table
     source_fields = {
         "SourceBoyOdds": "Odds (Boy)",
         "SourceGirlOdds": "Odds (Girl)",
@@ -2518,6 +2518,8 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         "SourceStars": "Stars",
         "SourceMinScore": "Min. Score",
     }
+
+    # export source to item table
     extra_info_getters = {
         "Mob": lambda src_id: "Lv{Level} {ColorType}".format(
             **sources["mob_type_info"][src_id]
@@ -2538,20 +2540,20 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             f"{sources['instance_info'].get(v['InstanceID'], {'Name': 'World'})['Name']} {v['AreaZone']} X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
             for v in sources["egg_info"][src_id].values()
         ),
-        "Racing": lambda src_id: "{AreaZone} Pods: {TotalPods} Time Limit: {TimeLimit}".format(
+        "Racing": lambda src_id: "{AreaZone}\nPods: {TotalPods}\nTime Limit: {TimeLimit}".format(
             **sources["infected_zone_info"][src_id]
         ),
     }
 
     with open(out_info_dir / "source_item_info_table.csv", "w") as f:
-        writer = csv.DictWriter(f, fieldnames=["Source Type", "Source ID", "Source Extra Info", "Items", "Items Extra Info"])
+        writer = csv.DictWriter(f, fieldnames=["Source Type", "Source", "Source Extra Info", "Items", "Items Extra Info"])
         writer.writeheader()
 
         for source_type, source_items in sources["source_item_info"].items():
             for source_id, items in source_items.items():
                 writer.writerow({
                     "Source Type": source_type,
-                    "Source ID": source_id.replace(SEP, " "),
+                    "Source": source_id.replace(SEP, " "),
                     "Source Extra Info": (
                         extra_info_getters[source_type](int(source_id.split(SEP)[0]))
                         if source_type in extra_info_getters
@@ -2563,6 +2565,45 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                         for v in items.values()
                     ),
                 })
+
+    # export item to source table
+    with open(out_info_dir / "item_source_info_table.csv", "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["Type", "Weapon Type", "ID", "Name", "Level", "Rarity", "Sources", "Sources Extra Info"])
+        writer.writeheader()
+
+        for item_tag, source_object_list in sources["item_source_info"].items():
+            item_str_id = SEP.join(item_tag.split(SEP)[:2])
+            item_obj = sources["item_info"][item_str_id]
+
+            source_strings = []
+            source_extra_info_strings = []
+
+            for source_object in source_object_list:
+                source_type = source_object['SourceType']
+                source_id = source_object['Source'][SOURCE_TYPE_ID_FIELD_MAP[source_type]]
+                source_name = source_object['Source'].get(SOURCE_TYPE_NAME_FIELD_MAP.get(source_type), '')
+
+                source_strings.append(f"{source_type} {source_id} {source_name}".strip())
+                source_extra_info_strings.append(
+                    " ".join(
+                        f"{f_v}: {source_object[f_k]}"
+                        for f_k, f_v in source_fields.items()
+                        if f_k in source_object and f_k not in ["Source", "SourceType"]
+                    )
+                )
+                if not source_extra_info_strings[-1]:
+                    source_extra_info_strings[-1] = "-"
+
+            writer.writerow({
+                "Type": item_obj["Type"],
+                "Weapon Type": item_obj["WeaponType"],
+                "ID": item_obj["ItemID"],
+                "Name": item_obj["Name"],
+                "Level": item_obj["ContentLevel"],
+                "Rarity": item_obj["Rarity"],
+                "Sources": "\n".join(source_strings),
+                "Sources Extra Info": "\n".join(source_extra_info_strings),
+            })
 
 
 def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path, patch_names: list[str]):
