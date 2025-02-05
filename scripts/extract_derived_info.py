@@ -1,6 +1,7 @@
 import csv
 import sys
 import json
+import random
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
@@ -9,6 +10,8 @@ from pathlib import Path
 
 import yaml
 import humanize
+import networkx as nx
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # TODO: csv and other output formats
@@ -2697,6 +2700,37 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             })
 
 
+def export_graph_source_info(out_info_dir: Path, sources: dict) -> None:
+    random.seed(2009)
+    # mission dependency graph
+    G = nx.DiGraph()
+
+    for mission_data in sources["mission_info"].values():
+        for required_mission_id, required_mission_name in mission_data["RequiredMissions"].items():
+            required_mission_data = sources["mission_info"].get(required_mission_id, {"Level": 0})
+            G.add_edge(
+                f"Lv{mission_data['Level']} {mission_data['Name'].replace('\n', ' ')}",
+                f"Lv{required_mission_data['Level']} {required_mission_name.replace('\n', ' ')}"
+            )
+
+    plt.figure(figsize=(40, 40))
+    pos = nx.nx_agraph.graphviz_layout(G, prog="neato", args="-Goverlap=false")
+
+    subgraphs = [G.subgraph(c) for c in nx.connected_components(G.to_undirected())]
+    for subgraph in subgraphs:
+        c = [random.random()] * nx.number_of_nodes(subgraph)
+        nx.draw(subgraph, pos, with_labels=False, arrowstyle="<-", node_size=80, node_color=c, vmin=0, vmax=1)
+        nx.draw_networkx_labels(
+            subgraph,
+            pos,
+            font_size=10,
+            bbox={"facecolor": "white", "alpha": 0.5, "edgecolor": "black"},
+        )
+
+    plt.savefig(out_info_dir / "mission_dependency_graph.png")
+    plt.close()
+
+
 def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path, patch_names: list[str]):
     out_info_dir.mkdir(parents=True, exist_ok=True)
 
@@ -2740,6 +2774,7 @@ def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path
 
     export_json_source_info(out_info_dir, sources)
     export_csv_source_info(out_info_dir, sources)
+    export_graph_source_info(out_info_dir, sources)
 
 
 def main(config_path: Path, output_root: Path, server_data_root: Path):

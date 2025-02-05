@@ -2,7 +2,7 @@ FROM python:bookworm
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y git graphviz graphviz-dev
 
 ADD requirements.txt .
 RUN pip install -r requirements.txt

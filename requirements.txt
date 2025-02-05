@@ -3,4 +3,5 @@ aiofiles
 PyYAML
 tqdm
 humanize
+networkx[default,extra]
 git+https://github.com/dongresource/UnityPackFF.git@ec9c4524ffc93e0482c500d810dd63cfa110be40
