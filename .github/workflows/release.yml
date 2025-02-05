@@ -1,0 +1,70 @@
+name: Create Release with Artifacts
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [ closed ]
+    branches: [ main ]
+
+jobs:
+  build-and-release:
+    if: github.event.pull_request.merged == true || github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed to count previous releases
+
+      - name: Build Docker image
+        run: docker build -t ff-extractor .
+
+      - name: Copy artifacts from container
+        run: |
+          container_id=$(docker create ff-extractor)
+          docker cp $container_id:/app/artifacts ./artifacts
+          docker rm $container_id
+
+      - name: Check changelog and prepare release
+        id: prepare_release
+        run: |
+          # Check if changelog exists and has content
+          if [ ! -f "artifacts/changelog.txt" ] || [ ! -s "artifacts/changelog.txt" ]; then
+            echo "skip_release=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get changelog content
+          changelog=$(cat artifacts/changelog.txt)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$changelog" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Count previous releases (excluding drafts and pre-releases)
+          release_number=$(gh release list --exclude-drafts --exclude-pre-releases | wc -l)
+          release_number=$((release_number + 1))
+          echo "release_number=$release_number" >> $GITHUB_OUTPUT
+
+          # Format current date
+          formatted_date=$(date '+%B %d, %Y %H:%M')
+          echo "formatted_date=$formatted_date" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        if: steps.prepare_release.outputs.skip_release != 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.prepare_release.outputs.release_number }} (${{ steps.prepare_release.outputs.formatted_date }})
+          body: |
+            Created on ${{ steps.prepare_release.outputs.formatted_date }}.
+
+            Changelog:
+            ${{ steps.prepare_release.outputs.changelog }}
+          files: artifacts/*.zip
+          tag_name: release-${{ steps.prepare_release.outputs.release_number }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
