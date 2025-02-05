@@ -1473,10 +1473,6 @@ def construct_egg_instance_region_grouped_data(sources: dict) -> None:
     for egg_obj_dict in sources["egg_info"].values():
         for egg_obj in egg_obj_dict.values():
             area_tag = egg_obj["AreaZone"]
-
-            if "Unknown" in area_tag:
-                continue
-
             egg_id = egg_obj["TypeID"]
             instance_id = egg_obj["InstanceID"]
             sources["egg_instance_region_grouped_info"][egg_id][instance_id][area_tag].append(egg_obj)
@@ -1488,10 +1484,6 @@ def construct_npc_instance_region_grouped_data(sources: dict) -> None:
     for npc_obj_dict in sources["npc_info"].values():
         for npc_obj in npc_obj_dict.values():
             area_tag = npc_obj["AreaZone"]
-
-            if "Unknown" in area_tag:
-                continue
-
             npc_id = npc_obj["TypeID"]
             instance_id = npc_obj["InstanceID"]
             sources["npc_instance_region_grouped_info"][npc_id][instance_id][area_tag].append(npc_obj)
@@ -1503,10 +1495,6 @@ def construct_mob_instance_region_grouped_data(sources: dict) -> None:
     for mob_obj_dict in sources["mob_info"].values():
         for mob_obj in mob_obj_dict.values():
             area_tag = mob_obj["AreaZone"]
-
-            if "Unknown" in area_tag:
-                continue
-
             mob_id = mob_obj["TypeID"]
             instance_id = mob_obj["InstanceID"]
             sources["mob_instance_region_grouped_info"][mob_id][instance_id][area_tag].append(mob_obj)
@@ -2039,6 +2027,9 @@ def fill_area_info(sources: dict) -> None:
                 for npc_obj in npc_obj_list:
                     area_obj = locate_coordinates(sources["area_info"], npc_obj["X"], npc_obj["Y"])
 
+                    if area_obj["AreaName"] == "Unknown":
+                        continue
+
                     area_obj["NPCs"][npc_obj["ID"]] = npc_obj
 
                     # add npc type info
@@ -2059,6 +2050,10 @@ def fill_area_info(sources: dict) -> None:
             for mob_obj_list in region_mob_dict.values():
                 for mob_obj in mob_obj_list:
                     area_obj = locate_coordinates(sources["area_info"], mob_obj["X"], mob_obj["Y"])
+
+                    if area_obj["AreaName"] == "Unknown":
+                        continue
+
                     area_obj["Mobs"][mob_obj["ID"]] = mob_obj
 
                     # add mob type info
@@ -2071,6 +2066,10 @@ def fill_area_info(sources: dict) -> None:
             for egg_obj_list in region_egg_dict.values():
                 for egg_obj in egg_obj_list:
                     area_obj = locate_coordinates(sources["area_info"], egg_obj["X"], egg_obj["Y"])
+
+                    if area_obj["AreaName"] == "Unknown":
+                        continue
+
                     area_obj["Eggs"][egg_obj["ID"]] = egg_obj
 
                     # add egg type info
@@ -2083,6 +2082,10 @@ def fill_area_info(sources: dict) -> None:
             for npc_obj_list in region_npc_dict.values():
                 for npc_obj in npc_obj_list:
                     area_obj = locate_coordinates(sources["area_info"], npc_obj["X"], npc_obj["Y"])
+
+                    if area_obj["AreaName"] == "Unknown":
+                        continue
+
                     area_obj["InstanceWarps"][instance_warp_obj["ID"]] = instance_warp_obj
 
                     # add ep instance info
@@ -2303,16 +2306,16 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
     def short_item_str(v: dict) -> str:
         return f"{v['ItemID']} {v['Name']} ({v['DisplayType']} Lv{v['ContentLevel']} {v['Rarity']})"
 
-    def get_instance_name(v: dict) -> str:
-        return sources["instance_info"].get(v["InstanceID"], {"Name": "World"})["Name"]
+    def get_instance_area_name(v: dict) -> str:
+        return sources["instance_info"].get(v.get("InstanceID", 0), {"Name": v["AreaZone"]})["Name"]
 
-    def get_location_str(v: dict) -> str:
-        if "LocationLimits" in v:
-            return f"{v['AreaZone']} X {v['MinX']}:{v['MaxX']} Y {v['MinY']}:{v['MaxY']} Z {v['MinZ']}:{v['MaxZ']}"
-        return f"{v['AreaZone']} X {v['X']} Y {v['Y']} Z {v['Z']}"
+    def get_coordinate_str(v: dict) -> str:
+        return f"X: {v['X']} Y: {v['Y']} Z: {v['Z']}"
 
-    def get_location_instance_str(v: dict) -> str:
-        return f"{get_instance_name(v)} {get_location_str(v)}"
+    def get_location_instance_str(v: dict, include_coordinate: bool = True) -> str:
+        if include_coordinate:
+            return f"{get_instance_area_name(v)} {get_coordinate_str(v)}"
+        return get_instance_area_name(v)
 
     csv_fields = {
         "item_info": {
@@ -2474,7 +2477,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         },
         "egg_info": {
             "TypeName": lambda obj: f"{obj['TypeName']} ({obj['TypeComment']} {obj['TypeExtraComment']})",
-            "InstanceID": get_instance_name,
+            "InstanceID": get_instance_area_name,
         },
         "egg_type_info": {
             "Name": lambda obj: f"{obj['Name']} ({obj['Comment']} {obj['ExtraComment']})",
@@ -2504,7 +2507,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             ),
         },
         "mob_info": {
-            "InstanceID": get_instance_name,
+            "InstanceID": get_instance_area_name,
         },
         "nano_info": {
             "NanoPowers": lambda obj: "\n".join(
@@ -2513,16 +2516,16 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             ),
         },
         "npc_info": {
-            "InstanceID": get_instance_name,
+            "InstanceID": get_instance_area_name,
         },
         "npc_type_info": {
             "Barkers": lambda obj: "\n".join(v for v in obj["Barkers"] if v),
         },
         "transportation_info": {
             "NPCType": lambda obj: f"{obj['NPCType']['ID']} {obj['NPCType']['Name']}" if obj["NPCType"] else "",
-            "StartLocation": lambda obj: f"{obj['StartLocation']['ID']} {get_location_str(obj['StartLocation'])}",
+            "StartLocation": lambda obj: f"{obj['StartLocation']['ID']} {get_location_instance_str(obj['StartLocation'])}",
             "Transportations": lambda obj: "\n".join(
-                f"{v['ID']} {get_location_str(v)} (Speed: {v['SpeedClass']} Taros: {v['Cost']})"
+                f"{v['ID']} {get_location_instance_str(v)} (Speed: {v['SpeedClass']} Taros: {v['Cost']})"
                 for v in obj["Transportations"].values()
             ),
         },
@@ -2559,33 +2562,45 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         "SourceStars": "Stars",
         "SourceMinScore": "Min. Score",
     }
-
-    # export source to item table
     extra_info_getters = {
-        "Mob": lambda src_id: "Lv{Level} {ColorType}".format(
-            **sources["mob_type_info"][src_id]
+        "Mob": lambda src_id, include_coordinate: "\n".join(
+            ["Lv{Level} {ColorType}".format(**sources["mob_type_info"][src_id])] +
+            sorted({
+                get_location_instance_str({"InstanceID": instance_id, "AreaZone": area_tag}, include_coordinate=False)
+                for instance_id, area_dict in sources["mob_instance_region_grouped_info"][src_id].items()
+                for area_tag in area_dict
+            })
         ),
-        "Vendor": lambda src_id: "\n".join(
-            get_location_instance_str(v)
-            for v in sources["vendor_info"][src_id]["NPCs"].values()
+        "Vendor": lambda src_id, include_coordinate: "\n".join(
+            sorted({
+                get_location_instance_str(v, include_coordinate)
+                for v in sources["vendor_info"][src_id]["NPCs"].values()
+            })
         ),
-        "MissionReward": lambda src_id: "\n".join(
-            get_location_instance_str(v)
-            for v in sources["npc_info"].get(sources["mission_info"].get(src_id, {}).get("MissionStartNPCID", 0), {}).values()
+        "MissionReward": lambda src_id, include_coordinate: "\n".join(
+            sorted({
+                get_location_instance_str(v, include_coordinate)
+                for v in sources["npc_info"].get(sources["mission_info"].get(src_id, {}).get("MissionStartNPCID", 0), {}).values()
+            })
         ),
-        "MissionRewardCrate": lambda src_id: "\n".join(
-            get_location_instance_str(v)
-            for v in sources["npc_info"].get(sources["mission_info"].get(src_id, {}).get("MissionStartNPCID", 0), {}).values()
+        "MissionRewardCrate": lambda src_id, include_coordinate: "\n".join(
+            sorted({
+                get_location_instance_str(v, include_coordinate)
+                for v in sources["npc_info"].get(sources["mission_info"].get(src_id, {}).get("MissionStartNPCID", 0), {}).values()
+            })
         ),
-        "Egg": lambda src_id: "\n".join(
-            get_location_instance_str(v)
-            for v in sources["egg_info"][src_id].values()
+        "Egg": lambda src_id, include_coordinate: "\n".join(
+            sorted({
+                get_location_instance_str(v, include_coordinate)
+                for v in sources["egg_info"][src_id].values()
+            })
         ),
-        "Racing": lambda src_id: "{AreaZone}\nPods: {TotalPods} Time Limit: {TimeLimit}".format(
+        "Racing": lambda src_id, include_coordinate: "{AreaZone}\nPods: {TotalPods} Time Limit: {TimeLimit}".format(
             **sources["infected_zone_info"][src_id]
         ),
     }
 
+    # export source to item table
     with open(out_info_dir / "source_item_info_table.csv", "w") as f:
         writer = csv.DictWriter(f, fieldnames=["Source Type", "Source", "Source Extra Info", "Items", "Items Extra Info"])
         writer.writeheader()
@@ -2596,7 +2611,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                     "Source Type": source_type,
                     "Source": source_id.replace(SEP, " "),
                     "Source Extra Info": (
-                        extra_info_getters[source_type](int(source_id.split(SEP)[0]))
+                        extra_info_getters[source_type](int(source_id.split(SEP)[0]), include_coordinate=True)
                         if source_type in extra_info_getters
                         else ""
                     ),
@@ -2624,8 +2639,13 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                 source_info = source_object["Source"]
                 source_id = source_info[SOURCE_TYPE_ID_FIELD_MAP[source_type]]
                 source_name = source_info.get(SOURCE_TYPE_NAME_FIELD_MAP.get(source_type), "")
+                source_metadata = (
+                    extra_info_getters[source_type](source_id, include_coordinate=False).replace("\n", " | ")
+                    if source_type in extra_info_getters
+                    else ""
+                )
 
-                source_strings.append(f"{source_type} {source_id} {source_name}".strip())
+                source_strings.append(" ".join(v for v in [source_type, str(source_id), source_name, source_metadata] if v))
                 source_extra_info_strings.append(
                     " ".join(
                         f"{f_v}: {source_object[f_k]}"
