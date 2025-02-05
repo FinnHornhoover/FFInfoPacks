@@ -2,6 +2,7 @@ import csv
 import sys
 import json
 import random
+import warnings
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
@@ -2713,6 +2714,7 @@ def export_graph_source_info(out_info_dir: Path, sources: dict) -> None:
                 f"Lv{required_mission_data['Level']} {required_mission_name.replace('\n', ' ')}"
             )
 
+    warnings.filterwarnings("ignore", category=UserWarning)
     plt.figure(figsize=(40, 40))
     pos = nx.nx_agraph.graphviz_layout(G, prog="neato", args="-Goverlap=false")
 
@@ -2729,6 +2731,7 @@ def export_graph_source_info(out_info_dir: Path, sources: dict) -> None:
 
     plt.savefig(out_info_dir / "mission_dependency_graph.png")
     plt.close()
+    warnings.resetwarnings()
 
 
 def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path, patch_names: list[str]):
