@@ -1467,6 +1467,25 @@ def construct_transportation_data(sources: dict) -> None:
         }
 
 
+def construct_combination_data(sources: dict) -> None:
+    sources["combination_info"] = {}
+
+    combining_data_list = sources["xdt"]["m_pCombiningTable"]["m_pCombiningData"]
+
+    for combination_obj in combining_data_list[1:]:
+        level_gap = combination_obj["m_iLevelGap"]
+
+        sources["combination_info"][level_gap] = {
+            "LevelGap": level_gap,
+            "SameRarity": combination_obj["m_fSameGrade"],
+            "OneRarityDiff": combination_obj["m_fOneGrade"],
+            "TwoRarityDiff": combination_obj["m_fTwoGrade"],
+            "ThreeRarityDiff": combination_obj["m_fThreeGrade"],
+            "LooksItemPriceMultiplier": combination_obj["m_iLookConstant"],
+            "StatsItemPriceMultiplier": combination_obj["m_iStatConstant"],
+        }
+
+
 def construct_egg_instance_region_grouped_data(sources: dict) -> None:
     sources["egg_instance_region_grouped_info"] = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
@@ -2293,6 +2312,7 @@ def export_json_source_info(out_info_dir: Path, sources: dict) -> None:
         "infected_zone_info",
         "code_item_info",
         "transportation_info",
+        "combination_info",
         "item_source_info",
         "source_item_info",
     ]
@@ -2469,6 +2489,15 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "NPCID": "NPC",
             "NPCs": "Locations",
             "Items": "Items",
+        },
+        "combination_info": {
+            "LevelGap": "Level Gap",
+            "SameRarity": "Same Rarity Chance %",
+            "OneRarityDiff": "One Rarity Diff. Chance %",
+            "TwoRarityDiff": "Two Rarity Diff. Chance %",
+            "ThreeRarityDiff": "Three Rarity Diff. Chance %",
+            "LooksItemPriceMultiplier": "Looks Item Price Multp.",
+            "StatsItemPriceMultiplier": "Stats Item Price Multp.",
         },
     }
     converters = {
@@ -2691,6 +2720,7 @@ def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path
     construct_vendor_data(sources)
     construct_ep_instance_data(sources)
     construct_code_item_data(sources)
+    construct_combination_data(sources)
     construct_egg_instance_region_grouped_data(sources)
     construct_npc_instance_region_grouped_data(sources)
     construct_mob_instance_region_grouped_data(sources)
