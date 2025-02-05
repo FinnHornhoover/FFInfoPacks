@@ -15,7 +15,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-# TODO: csv and other output formats
+# TODO: decide filtering mechanics, currently just filtering based on tdata, but previously valid objects are also filtered out
 SEP = "::"
 WORLD_INSTANCE_ID = 0
 NPC_ID_OFFSET = 1
