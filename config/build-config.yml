@@ -1,17 +1,17 @@
 config:
-  retrobution:
-    revision: 1 # Increment this when the resources change
-    url: http://www.nanocom.link/assets/
-    server-data:
-      repository: OpenFusionProject/tabledata
-    resources:
-      - TableData.resourceFile
-      - Icons.resourceFile
-      - Tutorial.resourceFile
+  # retrobution:
+  #   revision: 1 # Increment this when the resources change
+  #   url: http://www.nanocom.link/assets
+  #   server-data:
+  #     repository: OpenFusionProject/tabledata
+  #   resources:
+  #     - TableData.resourceFile
+  #     - Icons.resourceFile
+  #     - Tutorial.resourceFile
   beta-20100104:
     revision: 1 # Increment this when the resources change
     nickname: original
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100104/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100104
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -20,7 +20,7 @@ config:
       - Tutorial.resourceFile
   beta-20100119:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100119/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100119
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -29,7 +29,7 @@ config:
       - Tutorial.resourceFile
   beta-20100207:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100207/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100207
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -38,7 +38,7 @@ config:
       - Tutorial.resourceFile
   beta-20100307:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100307/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100307
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -47,7 +47,7 @@ config:
       - Tutorial.resourceFile
   beta-20100322:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100322/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100322
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -56,7 +56,7 @@ config:
       - Tutorial.resourceFile
   beta-20100413:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100413/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100413
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -65,7 +65,7 @@ config:
       - Tutorial.resourceFile
   beta-20100502:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100502/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100502
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -74,7 +74,7 @@ config:
       - Tutorial.resourceFile
   beta-20100524:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100524/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100524
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -83,7 +83,7 @@ config:
       - Tutorial.resourceFile
   beta-20100604:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100604/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100604
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -92,7 +92,7 @@ config:
       - Tutorial.resourceFile
   beta-20100616:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100604/ # beta-20100616 is broken, use beta-20100604 instead
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100604 # beta-20100616 is broken, use beta-20100604 instead
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -101,7 +101,7 @@ config:
       - Tutorial.resourceFile
   beta-20100711:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100711/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100711
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -111,7 +111,7 @@ config:
   beta-20100728:
     revision: 1 # Increment this when the resources change
     nickname: common-future
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100728/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100728
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -120,7 +120,7 @@ config:
       - Tutorial.resourceFile
   beta-20100909:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20100909/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100909
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -129,7 +129,7 @@ config:
       - Tutorial.resourceFile
   beta-20101003:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20101003/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20101003
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -138,7 +138,7 @@ config:
       - Tutorial.resourceFile
   beta-20101011:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20101011/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20101011
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -147,7 +147,7 @@ config:
       - Tutorial.resourceFile
   beta-20101028:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20101028/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20101028
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -157,7 +157,7 @@ config:
   beta-20101123:
     revision: 1 # Increment this when the resources change
     nickname: latest-future
-    url: https://cdn.dexlabs.systems/ff/big/beta-20101123/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20101123
     server-data:
       repository: OpenFusionProject/tabledata
     resources:
@@ -167,7 +167,7 @@ config:
   beta-20110213:
     revision: 1 # Increment this when the resources change
     nickname: earliest-academy
-    url: https://cdn.dexlabs.systems/ff/big/beta-20110213/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110213
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
@@ -177,7 +177,7 @@ config:
       - Icons.resourceFile
   beta-20110314:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20110314/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110314
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
@@ -188,7 +188,7 @@ config:
       - TrainingGrounds.resourceFile
   beta-20110330:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20110330/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110330
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
@@ -198,7 +198,7 @@ config:
       - Icons.resourceFile
   beta-20110424:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20110424/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110424
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
@@ -209,7 +209,7 @@ config:
       - TrainingGrounds.resourceFile
   beta-20110523:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20110523/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110523
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
@@ -220,7 +220,7 @@ config:
       - TrainingGrounds.resourceFile
   beta-20110725:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20110725/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110725
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
@@ -231,7 +231,7 @@ config:
       - TrainingGrounds.resourceFile
   beta-20110818:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20110818/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110818
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
@@ -242,7 +242,7 @@ config:
       - TrainingGrounds.resourceFile
   beta-20110912:
     revision: 1 # Increment this when the resources change
-    url: https://cdn.dexlabs.systems/ff/big/beta-20110912/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110912
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
@@ -253,7 +253,7 @@ config:
   beta-20111013:
     revision: 1 # Increment this when the resources change
     nickname: academy
-    url: https://cdn.dexlabs.systems/ff/big/beta-20111013/
+    url: https://cdn.dexlabs.systems/ff/big/beta-20111013
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
