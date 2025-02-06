@@ -29,7 +29,7 @@ def pull_table_data(server_data_root: Path, server_data_config: dict[str, Any]):
 
 
 async def download_file(client: httpx.AsyncClient, url: str, path: Path):
-    async with client.stream("GET", url, follow_redirects=True) as stream:
+    async with client.stream("GET", url, follow_redirects=True, timeout=httpx.Timeout(None)) as stream:
         stream.raise_for_status()
 
         async with aiofiles.open(path, "wb") as f:
