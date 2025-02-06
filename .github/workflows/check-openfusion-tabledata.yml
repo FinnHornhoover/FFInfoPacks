@@ -1,0 +1,49 @@
+name: Check OpenFusion Tabledata Updates
+
+on:
+  # schedule:
+  #   - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Get latest tabledata commit
+        id: get-latest
+        run: |
+          LATEST=$(curl -s "https://api.github.com/repos/OpenFusionProject/tabledata/commits/master" | jq -r .sha)
+          echo "latest_commit=$LATEST" >> $GITHUB_OUTPUT
+
+      - name: Load cached commit
+        id: get-cached
+        run: |
+          mkdir -p .cache
+          touch .cache/last_commit
+          echo "cached_commit=$(cat .cache/last_commit)" >> $GITHUB_OUTPUT
+
+      - name: Update revision numbers if changed
+        if: steps.get-latest.outputs.latest_commit != steps.get-cached.outputs.cached_commit
+        run: |
+          yq -i '((.config | keys[] | select(test("^beta-"))) as $key | .config[$key].revision) += 1' config/build-config.yml
+          echo "${{ steps.get-latest.outputs.latest_commit }}" > .cache/last_commit
+
+      - name: Create Pull Request
+        if: steps.get-latest.outputs.latest_commit != steps.get-cached.outputs.cached_commit
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: 'chore: increment beta build revisions'
+          commit-message: 'chore: increment beta build revisions after tabledata update'
+          branch: increment-revisions
+          delete-branch: true
+          body: |
+            Automatically incrementing revision numbers for beta builds after OpenFusion tabledata repository update.
+
+            Triggered by OpenFusion tabledata commit: ${{ steps.get-latest.outputs.latest_commit }}
