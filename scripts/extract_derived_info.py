@@ -831,7 +831,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             "RequiredGuide": MISSION_GUIDE_TYPES[mission_obj["m_iCSTReqGuide"]],
             "RequiredMissionIDs": mission_obj["m_iCSTReqMission"],
             "RequiredMissions": {
-                m_id: mission_string_list[mission_task_groupped_list[m_id][0]["m_iHMissionName"]]["m_pstrNameString"]
+                m_id: mission_string_list[mission_task_groupped_list[m_id][0]["m_iHMissionName"]]["m_pstrNameString"].replace("\n", " ")
                 for m_id in mission_obj["m_iCSTReqMission"]
                 if m_id > 0
             },
@@ -2248,55 +2248,32 @@ def construct_valid_id_sets(sources: dict) -> None:
     sources["valid_items"] = {
         obj["ID"]
         for obj in sources["item_info"].values()
-        if any(source_valid(source_obj) for source_obj in sources["item_source_info"].get(obj["ID"], []))
+        if any(
+            source_valid(source_obj)
+            for source_obj in sources["item_source_info"].get(
+                "{ID}{SEP}{Name}".format(**obj, SEP=SEP),
+                [],
+            )
+        )
     }
 
 
-def filter_sources(sources: dict) -> None:
-    def filter_single(dct: dict[str, dict], key: str, valids_key: str) -> None:
+def mark_valid_sources(sources: dict) -> None:
+    def mark_single(dct: dict[str, dict], key: str, valids_key: str, mark_key: str = "InGame") -> None:
         dct[key] = {
-            obj_id: obj
+            obj_id: {**obj, mark_key: obj_id in sources[valids_key]}
             for obj_id, obj in dct[key].items()
-            if obj_id in sources[valids_key]
         }
 
-    filter_single(sources, "npc_type_info", "valid_npc_types")
-    filter_single(sources, "mob_type_info", "valid_mob_types")
-    filter_single(sources, "egg_type_info", "valid_egg_types")
-    # physical npc, mob, egg objects in source are grouped by type
-    filter_single(sources, "npc_info", "valid_npc_types")
-    filter_single(sources, "mob_info", "valid_mob_types")
-    filter_single(sources, "egg_info", "valid_egg_types")
-    filter_single(sources, "mission_info", "valid_missions")
-    filter_single(sources, "instance_info", "valid_instances")
-    filter_single(sources, "infected_zone_info", "valid_infected_zones")
-    filter_single(sources, "transportation_info", "valid_transportations")
-    filter_single(sources, "vendor_info", "valid_vendors")
-    # we shouldn't filter items based on acquirable sources, since sources may be removed later from the game
-    # filter_single(sources, "item_info", "valid_items")
-
-    # filter out mission barkers specifically
-    for mission_obj in sources["mission_info"].values():
-        mission_obj["Barkers"] = {
-            npc_tag: barker_text
-            for npc_tag, barker_text in mission_obj["Barkers"].items()
-            if int(npc_tag.split(SEP)[0]) in sources["valid_npc_types"]
-        }
-
-    for area_obj_list in sources["area_info"].values():
-        for area_obj in area_obj_list:
-            filter_single(area_obj, "NPCTypes", "valid_npc_types")
-            filter_single(area_obj, "MobTypes", "valid_mob_types")
-            filter_single(area_obj, "EggTypes", "valid_egg_types")
-            filter_single(area_obj, "NPCs", "valid_npcs")
-            filter_single(area_obj, "Mobs", "valid_mobs")
-            filter_single(area_obj, "Eggs", "valid_eggs")
-            filter_single(area_obj, "Vendors", "valid_vendors")
-            filter_single(area_obj, "InstanceWarps", "valid_instance_warps")
-            filter_single(area_obj, "Transportation", "valid_transportations")
-
-            if area_obj["InfectedZone"] and area_obj["InfectedZone"]["ID"] not in sources["valid_infected_zones"]:
-                area_obj["InfectedZone"] = None
+    mark_single(sources, "npc_type_info", "valid_npc_types")
+    mark_single(sources, "mob_type_info", "valid_mob_types")
+    mark_single(sources, "egg_type_info", "valid_egg_types")
+    mark_single(sources, "mission_info", "valid_missions")
+    mark_single(sources, "instance_info", "valid_instances")
+    mark_single(sources, "infected_zone_info", "valid_infected_zones")
+    mark_single(sources, "transportation_info", "valid_transportations")
+    mark_single(sources, "vendor_info", "valid_vendors")
+    mark_single(sources, "item_info", "valid_items", mark_key="Obtainable")
 
 
 def export_json_source_info(out_info_dir: Path, sources: dict) -> None:
@@ -2349,6 +2326,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "Name": "Name",
             "ContentLevel": "Level",
             "Rarity": "Rarity",
+            "Obtainable": "Obtainable",
             "Tradeable": "Tradeable",
             "Sellable": "Vendor Sellable",
             "Range": "Range",
@@ -2379,6 +2357,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "Name": "Type",
             "CrateID": "Crate ID",
             "Effect": "Effect",
+            "InGame": "In Game",
             "EffectDuration": "Effect Duration Seconds",
             "RespawnTime": "Respawn Time",
         },
@@ -2388,6 +2367,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "AreaZone": "Area",
             "ZoneX": "X Zone",
             "ZoneY": "Y Zone",
+            "InGame": "In Game",
             "ScoreCap": "Score Cap",
             "TotalPods": "Total Pods",
             "TimeLimit": "Time Limit",
@@ -2403,6 +2383,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "AreaZone": "Area",
             "ZoneX": "X Zone",
             "ZoneY": "Y Zone",
+            "InGame": "In Game",
         },
         "mission_info": {
             "ID": "ID",
@@ -2410,6 +2391,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "Level": "Level",
             "Type": "Type",
             "Difficulty": "Difficulty",
+            "InGame": "In Game",
             "MissionStartNPCName": "Start NPC",
             "MissionJournalNPCName": "Journal NPC",
             "MissionEndNPCName": "End NPC",
@@ -2437,6 +2419,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "Name": "Name",
             "Level": "Level",
             "ColorType": "Color Type",
+            "InGame": "In Game",
             "StandardHP": "HP",
             "Accuracy": "Accuracy",
             "Protection": "Protection",
@@ -2479,6 +2462,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "HNPCTypeID": "HNPC ID",
             "Name": "Name",
             "Category": "Category",
+            "InGame": "In Game",
             "Comment": "Comment",
             "Barkers": "Barkers",
         },
@@ -2486,11 +2470,13 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "NPCID": "NPC ID",
             "NPCType": "NPC Name",
             "MoveType": "Move Type",
+            "InGame": "In Game",
             "StartLocation": "Start Location",
             "Transportations": "Destinations",
         },
         "vendor_info": {
             "NPCID": "NPC",
+            "InGame": "In Game",
             "NPCs": "Locations",
             "Items": "Items",
         },
@@ -2710,8 +2696,8 @@ def export_graph_source_info(out_info_dir: Path, sources: dict) -> None:
         for required_mission_id, required_mission_name in mission_data["RequiredMissions"].items():
             required_mission_data = sources["mission_info"].get(required_mission_id, {"Level": 0})
             G.add_edge(
-                f"Lv{mission_data['Level']} {mission_data['Name'].replace('\n', ' ')}",
-                f"Lv{required_mission_data['Level']} {required_mission_name.replace('\n', ' ')}"
+                f"Lv{mission_data['Level']} {mission_data['Name'].replace('\n', ' ')}{' [X]' if not mission_data['InGame'] else ''}",
+                f"Lv{required_mission_data['Level']} {required_mission_name.replace('\n', ' ')}{' [X]' if not required_mission_data['InGame'] else ''}",
             )
 
     warnings.filterwarnings("ignore", category=UserWarning)
@@ -2722,11 +2708,20 @@ def export_graph_source_info(out_info_dir: Path, sources: dict) -> None:
     for subgraph in subgraphs:
         c = [random.random()] * nx.number_of_nodes(subgraph)
         nx.draw(subgraph, pos, with_labels=False, arrowstyle="<-", node_size=80, node_color=c, vmin=0, vmax=1)
+
+        valid_subgraph = subgraph.subgraph([n for n in subgraph.nodes() if "[X]" not in n])
+        invalid_subgraph = subgraph.subgraph([n for n in subgraph.nodes() if "[X]" in n])
         nx.draw_networkx_labels(
-            subgraph,
+            valid_subgraph,
             pos,
             font_size=10,
             bbox={"facecolor": "white", "alpha": 0.5, "edgecolor": "black"},
+        )
+        nx.draw_networkx_labels(
+            invalid_subgraph,
+            pos,
+            font_size=10,
+            bbox={"facecolor": "red", "alpha": 0.5, "edgecolor": "brown"},
         )
 
     plt.savefig(out_info_dir / "mission_dependency_graph.png")
@@ -2773,7 +2768,7 @@ def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path
     construct_source_item_data(sources)
     fill_area_info(sources)
     construct_valid_id_sets(sources)
-    filter_sources(sources)
+    mark_valid_sources(sources)
 
     export_json_source_info(out_info_dir, sources)
     export_csv_source_info(out_info_dir, sources)
