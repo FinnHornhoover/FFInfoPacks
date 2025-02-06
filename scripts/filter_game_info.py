@@ -411,6 +411,7 @@ def filter_game_info(config_how_path: Path, config_exclude_path: Path, in_dir: P
 
 def main(config_root: Path, in_root: Path, out_root: Path):
     in_dirs = [p for p in in_root.iterdir() if p.is_dir()]
+    out_root.mkdir(parents=True, exist_ok=True)
     config_exclude_how_path = config_root / "how-exclude.yml"
 
     for in_dir in tqdm(in_dirs):

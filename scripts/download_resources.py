@@ -29,7 +29,7 @@ def pull_table_data(server_data_root: Path, server_data_config: dict[str, Any]):
 
 
 async def download_file(client: httpx.AsyncClient, url: str, path: Path):
-    async with client.stream("GET", url) as stream:
+    async with client.stream("GET", url, follow_redirects=True) as stream:
         stream.raise_for_status()
 
         async with aiofiles.open(path, "wb") as f:
@@ -96,7 +96,12 @@ async def download_resources(
 async def main(config_path: Path, asset_root: Path, artifact_root: Path, server_data_root: Path):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)["config"]
+
     await download_resources(config, asset_root, artifact_root, server_data_root)
+
+    for build in asset_root.iterdir():
+        if not any(build.iterdir()):
+            build.rmdir()
 
 
 if __name__ == "__main__":

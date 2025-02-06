@@ -136,6 +136,7 @@ def xdt_bundle_extract(path: Path, outdir: Path):
 
 def main(asset_root: Path, output_root: Path):
     asset_paths = [p for p in asset_root.iterdir() if p.is_dir()]
+    output_root.mkdir(parents=True, exist_ok=True)
     for asset_path in tqdm(asset_paths):
         output_path = output_root / asset_path.name
         output_path.mkdir(parents=True, exist_ok=True)
