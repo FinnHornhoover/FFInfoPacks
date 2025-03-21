@@ -1,13 +1,13 @@
 config:
-  # retrobution:
-  #   revision: 1 # Increment this when the resources change
-  #   url: http://www.nanocom.link/assets
-  #   server-data:
-  #     repository: OpenFusionProject/tabledata
-  #   resources:
-  #     - TableData.resourceFile
-  #     - Icons.resourceFile
-  #     - Tutorial.resourceFile
+  retrobution:
+    revision: 1 # Increment this when the resources change
+    api-url: https://api.ffretrobution.net
+    server-data:
+      repository: Retrobution/Retrobution-TableData
+    resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
   beta-20100104:
     revision: 2 # Increment this when the resources change
     nickname: original

@@ -1,9 +1,8 @@
-import os
 import sys
 import asyncio
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 import aiofiles
 import httpx
@@ -18,14 +17,18 @@ def pull_table_data(server_data_root: Path, server_data_config: dict[str, Any]):
     clone_path = server_data_root / repo_name_path.parent
     clone_path.mkdir(parents=True, exist_ok=True)
 
-    token = os.environ.get("TDATA_PULL_TOKEN")
-    token_prefix = f"{token}@" if token else ""
-    url = f"https://{token_prefix}github.com/{repo_name_path}.git"
-
+    url = f"ssh://git@github.com/{repo_name_path}.git"
     repo_path = clone_path / repo_name_path.name
 
     if not repo_path.is_dir():
         subprocess.run(["git", "clone", "-q", url, repo_path])
+
+
+async def get_json_info(client: httpx.AsyncClient, url: str) -> Dict[str, Any]:
+    response = await client.get(url)
+    response.raise_for_status()
+
+    return response.json()
 
 
 async def download_file(client: httpx.AsyncClient, url: str, path: Path):
@@ -44,7 +47,16 @@ async def download_zip_or_resources(
     asset_root: Path,
     artifact_root: Path,
 ):
-    base_url = build_config["url"]
+    if "api-url" in build_config:
+        api_info = await get_json_info(client, build_config["api-url"])
+        game_version = api_info["game_versions"][0]
+        version_url = f"{build_config['api-url']}/versions/{game_version}.json"
+        version_info = await get_json_info(client, version_url)
+
+        base_url = version_info["asset_url"]
+    else:
+        base_url = build_config["url"]
+
     nickname = f"_{build_config['nickname']}" if "nickname" in build_config else ""
     revision = build_config["revision"]
     zip_name = f"{build}_r{revision}{nickname}.zip"
