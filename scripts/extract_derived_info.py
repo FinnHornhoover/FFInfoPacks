@@ -1352,6 +1352,9 @@ def construct_transportation_data(sources: dict) -> None:
             )
 
             if vehicle_move_type_id == 2:
+                if vehicle_route_id not in skyway_paths:
+                    continue
+
                 path_obj = skyway_paths[vehicle_route_id]
                 vehicle_speed = path_obj["iMonkeySpeed"]
                 vehicle_route_points = (
@@ -2229,7 +2232,7 @@ def construct_valid_id_sets(sources: dict) -> None:
             return True
 
         if source_obj["SourceType"] == "Vendor":
-            return source_obj["Source"]["NPCID"] in sources["valid_vendors"]
+            return source_obj["Source"]["NPCTypeID"] in sources["valid_vendors"]
 
         if source_obj["SourceType"] == "Egg":
             return source_obj["Source"]["EggTypeID"] in sources["valid_egg_types"]
