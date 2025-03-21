@@ -1,6 +1,7 @@
 import csv
 import sys
 import json
+import math
 import random
 import warnings
 from collections import defaultdict
@@ -2578,11 +2579,15 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                     })
 
     source_fields = {
-        "SourceBoyOdds": "Odds (Boy)",
-        "SourceGirlOdds": "Odds (Girl)",
+        "SourceBoyProbability": "Odds (Boy)",
+        "SourceGirlProbability": "Odds (Girl)",
         "SourcePrice": "Price",
         "SourceStars": "Stars",
         "SourceMinScore": "Min. Score",
+    }
+    source_formatters = {
+        "SourceBoyProbability": lambda v: f"1 / {math.ceil(1 / v)}" if v > 0 else "Impossible",
+        "SourceGirlProbability": lambda v: f"1 / {math.ceil(1 / v)}" if v > 0 else "Impossible",
     }
     extra_info_getters = {
         "Mob": lambda src_id, include_coordinate: "\n".join(
@@ -2639,7 +2644,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                     ),
                     "Items": "\n".join(short_item_str(v["Item"]) for v in items.values()),
                     "Items Extra Info": "\n".join(
-                        " ".join(f"{f_v}: {v[f_k]}" for f_k, f_v in source_fields.items() if f_k in v)
+                        " ".join(f"{f_v}: {source_formatters.get(f_k, lambda v: v)(v[f_k])}" for f_k, f_v in source_fields.items() if f_k in v)
                         for v in items.values()
                     ),
                 })
@@ -2670,7 +2675,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                 source_strings.append(" ".join(v for v in [source_type, str(source_id), source_name, source_metadata] if v))
                 source_extra_info_strings.append(
                     " ".join(
-                        f"{f_v}: {source_object[f_k]}"
+                        f"{f_v}: {source_formatters.get(f_k, lambda v: v)(source_object[f_k])}"
                         for f_k, f_v in source_fields.items()
                         if f_k in source_object and f_k not in ["Source", "SourceType"]
                     )
