@@ -16,12 +16,12 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-# TODO: decide filtering mechanics, currently just filtering based on tdata, but previously valid objects are also filtered out
 SEP = "::"
 WORLD_INSTANCE_ID = 0
 NPC_ID_OFFSET = 1
 MOB_ID_OFFSET = 10000
 MOB_GROUP_ID_OFFSET = 20000
+MOB_SPECIAL_ID_OFFSET = 30000
 TILE_WIDTH = 51200
 ITEM_TYPES = [
     "Weapon",
@@ -701,6 +701,38 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
                 }
                 sources["npc_mob_info"][follower_mob_type_id][str_follower_id] = sources["mob_info"][follower_mob_type_id][str_follower_id]
 
+    if sources["is_retrobution"]:
+        additional_mob_types = {
+            3369,  # The Weeper
+            3168,  # Lv35 Echo Echo
+            3171,  # Lv36 Echo Echo
+        }
+        for i, mob_type_id in enumerate(additional_mob_types):
+            if mob_type_id not in sources["mob_type_info"]:
+                continue
+
+            if mob_type_id == 3369:
+                x, y, z, angle, instance_id = 267313, 380247, -3710, -108, 24
+            else:
+                x, y, z, angle, instance_id = 316703, 757442, 5242, 156, 3
+
+            mob_id = MOB_SPECIAL_ID_OFFSET + i
+            sources["mob_info"][mob_type_id][str(mob_id)] = {
+                "ID": str(mob_id),
+                "TypeID": mob_type_id,
+                "TypeName": sources["mob_type_info"][mob_type_id]["Name"],
+                "TypeIcon": sources["mob_type_info"][mob_type_id]["Icon"],
+                "FollowsMobID": "",
+                "HP": sources["mob_type_info"][mob_type_id]["StandardHP"],
+                "X": x,
+                "Y": y,
+                "Z": z,
+                "Angle": angle,
+                "InstanceID": instance_id,
+                "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], 0, 0)),
+            }
+            sources["npc_mob_info"][mob_type_id][str(mob_id)] = sources["mob_info"][mob_type_id][str(mob_id)]
+
 
 def construct_egg_data(sources: dict[str, dict]) -> None:
     sources["egg_type_info"] = {}
@@ -759,6 +791,13 @@ def construct_egg_data(sources: dict[str, dict]) -> None:
             "InstanceID": egg_obj.get("iMapNum", 0),
             "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], egg_obj["iX"], egg_obj["iY"])),
         }
+
+    if sources["is_retrobution"]:
+        # remove test eggs
+        remove_egg_types = {129, 130, 131, 132, 133, 134, 135, 136, 137, 138}
+        for egg_type_id in remove_egg_types:
+            del sources["egg_type_info"][egg_type_id]
+            del sources["egg_info"][egg_type_id]
 
 
 def construct_mission_data(sources: dict[str, dict]) -> None:
@@ -2133,6 +2172,13 @@ def construct_valid_id_sets(sources: dict) -> None:
         | {o["iNPCType"] for obj in sources["mobs"]["groups"].values() for o in obj["aFollowers"]}
     )
 
+    if sources["is_retrobution"]:
+        sources["valid_mob_types"].update({
+            3369,  # The Weeper
+            3168,  # Lv35 Echo Echo
+            3171,  # Lv36 Echo Echo
+        })
+
     sources["valid_npc_mob_types"] = sources["valid_npc_types"] | sources["valid_mob_types"]
 
     sources["valid_egg_types"] = {
@@ -2747,6 +2793,8 @@ def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path
 
     with open(in_dir / "xdt.json", "r") as f:
         sources["xdt"] = json.load(f)
+
+    sources["is_retrobution"] = "retrobution" in str(in_dir)
 
     construct_drop_directory_data(sources, server_data_dir, patch_names)
     construct_area_data(sources)
