@@ -1837,6 +1837,8 @@ def construct_crate_content_source_data(sources: dict) -> None:
                         else 0
                     )
                     for ir_id in itemset["ItemReferenceIDs"]
+                    # itemref may be removed but still referenced in itemset
+                    if ir_id in item_ref_to_str_id
                 }
                 for rarity_id in range(1, 5)
             }
@@ -1870,10 +1872,18 @@ def construct_crate_content_source_data(sources: dict) -> None:
             sum_girl_rarity_ir_weights = max(1, sum(girl_rarity_ir_weights.values()))
 
             for ir_id in itemset_obj["ItemReferenceIDs"]:
+                # itemref may be removed but still referenced in itemset
+                if ir_id not in item_ref_to_str_id:
+                    continue
+
                 boy_probabilities[ir_id] += rarity_probability * Fraction(boy_rarity_ir_weights[ir_id], sum_boy_rarity_ir_weights)
                 girl_probabilities[ir_id] += rarity_probability * Fraction(girl_rarity_ir_weights[ir_id], sum_girl_rarity_ir_weights)
 
         for ir_id in itemset_obj["ItemReferenceIDs"]:
+            # itemref may be removed but still referenced in itemset
+            if ir_id not in item_ref_to_str_id:
+                continue
+
             item_str_id = item_ref_to_str_id[ir_id]
 
             sources["crate_content_source_info"][item_str_id].append({
