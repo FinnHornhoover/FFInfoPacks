@@ -17,8 +17,8 @@ jobs:
       - name: Build Docker image
         run: docker build -t ff-extractor --secret id=SSH_PRIVATE_KEY --secret id=SSH_PASSPHRASE .
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_PASSPHRASE: ${{ secrets.SSH_PASSPHRASE }}
+          SSH_PRIVATE_KEY: "${{ secrets.SSH_PRIVATE_KEY }}"
+          SSH_PASSPHRASE: "${{ secrets.SSH_PASSPHRASE }}"
 
       - name: Copy artifacts from container
         run: |
