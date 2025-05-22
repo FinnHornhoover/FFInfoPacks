@@ -168,3 +168,4 @@ pre_filter/
 output*/
 artifacts/
 server_data/
+make_env.sh

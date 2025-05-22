@@ -1865,7 +1865,9 @@ def construct_crate_content_source_data(sources: dict) -> None:
         ])
 
         for rarity_id, weight in zip(range(1, 5), rarity_weights_obj["Weights"]):
-            rarity_probability = Fraction(weight, total_weight) if total_weight > 0 else Fraction(0)
+            # counterintuitive, but the rarity_id == 1 fallback is being used by eggers
+            # if total weight turns out to be 0, we always roll a Common item
+            rarity_probability = Fraction(weight, total_weight) if total_weight > 0 else (Fraction(1) if rarity_id == 1 else Fraction(0))
             boy_rarity_ir_weights = boy_rarity_weights[rarity_id]
             girl_rarity_ir_weights = girl_rarity_weights[rarity_id]
             sum_boy_rarity_ir_weights = max(1, sum(boy_rarity_ir_weights.values()))
@@ -2087,7 +2089,16 @@ def construct_source_item_data(sources: dict) -> None:
 
             source_id = source_info[SOURCE_TYPE_ID_FIELD_MAP[source_type_id]]
             source_name = source_info[SOURCE_TYPE_NAME_FIELD_MAP[source_type_id]] if source_type_id != "CodeItem" else ""
-            source_tag = f"{source_id}{SEP + source_name if source_name else ''}"
+            source_extra_id = (
+                f"{source_info['RequiredStars']} Stars"
+                if source_type_id == "Racing"
+                else (
+                    f"{source_info['Price']} Taro E.G.G.s"
+                    if source_type_id == "Vendor" and source_name.strip() == "E.G.G.E.R."
+                    else ""
+                )
+            )
+            source_tag = f"{source_id}{SEP + source_name if source_name else ''}{SEP + source_extra_id if source_extra_id else ''}"
 
             sources["source_item_info"][source_type_id][source_tag][item_tag] = {
                 "Item": item_obj,
@@ -2365,7 +2376,7 @@ def export_json_source_info(out_info_dir: Path, sources: dict) -> None:
 
 def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
     def short_item_str(v: dict) -> str:
-        return f"{v['ItemID']} {v['Name']} ({v['DisplayType']} Lv{v['ContentLevel']} {v['Rarity']})"
+        return f"{v['ItemID']} {v['Name']} ({v['DisplayType']} Lv{v['ContentLevel']} {v['Description'] if v['TypeID'] == 9 and len(v['Description']) < 30 else v['Rarity']})"
 
     def get_instance_area_name(v: dict) -> str:
         return sources["instance_info"].get(v.get("InstanceID", 0), {"Name": v["AreaZone"]})["Name"]
@@ -2689,7 +2700,23 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         writer.writeheader()
 
         for source_type, source_items in sources["source_item_info"].items():
-            for source_id, items in source_items.items():
+            item_fields = {
+                source_id: sorted([
+                    (
+                        -max(v.get("SourceBoyProbability", 0), v.get("SourceGirlProbability", 0)),
+                        v["Item"]["ContentLevel"],
+                        v["Item"]["RarityID"],
+                        v["Item"]["TypeID"],
+                        v["Item"]["ItemID"],
+                        short_item_str(v["Item"]),
+                        " ".join(f"{f_v}: {source_formatters.get(f_k, lambda v: v)(v[f_k])}" for f_k, f_v in source_fields.items() if f_k in v)
+                    )
+                    for v in items.values()
+                ])
+                for source_id, items in source_items.items()
+            }
+
+            for source_id in sorted(source_items.keys(), key=lambda id: (int(id.split(SEP)[0]) if id.split(SEP)[0].isdigit() else 0, id)):
                 writer.writerow({
                     "Source Type": source_type,
                     "Source": source_id.replace(SEP, " "),
@@ -2698,11 +2725,8 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                         if source_type in extra_info_getters
                         else ""
                     ),
-                    "Items": "\n".join(short_item_str(v["Item"]) for v in items.values()),
-                    "Items Extra Info": "\n".join(
-                        " ".join(f"{f_v}: {source_formatters.get(f_k, lambda v: v)(v[f_k])}" for f_k, f_v in source_fields.items() if f_k in v)
-                        for v in items.values()
-                    ),
+                    "Items": "\n".join(f[-2] for f in item_fields[source_id]),
+                    "Items Extra Info": "\n".join(f[-1] for f in item_fields[source_id]),
                 })
 
     # export item to source table
