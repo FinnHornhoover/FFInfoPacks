@@ -14,14 +14,6 @@ jobs:
         with:
           fetch-depth: 0  # Needed to count previous releases
 
-      - name: Debug secret presence
-        run: |
-          echo "SSH_PRIVATE_KEY is set: $([[ -n $SSH_PRIVATE_KEY ]] && echo 'YES' || echo 'NO')"
-          echo "SSH_PASSPHRASE is set: $([[ -n $SSH_PASSPHRASE ]] && echo 'YES' || echo 'NO')"
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_PASSPHRASE: ${{ secrets.SSH_PASSPHRASE }}
-
       - name: Build Docker image
         run: docker build -t ff-extractor --secret id=SSH_PRIVATE_KEY --secret id=SSH_PASSPHRASE .
         env:
