@@ -14,7 +14,7 @@ RUN mkdir -p ~/.ssh
 RUN ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
 RUN --mount=type=secret,id=SSH_PASSPHRASE echo "echo $(cat /run/secrets/SSH_PASSPHRASE)" > ~/.ssh_askpass && chmod +x ~/.ssh_askpass
 RUN --mount=type=secret,id=SSH_PRIVATE_KEY eval $(ssh-agent -s) && \
-    echo "$(cat /run/secrets/SSH_PRIVATE_KEY)" | base64 -d | DISPLAY=None SSH_ASKPASS=~/.ssh_askpass ssh-add - && \
+    echo "$(cat /run/secrets/SSH_PRIVATE_KEY)" | base64 -d | tr -d '\r' | DISPLAY=None SSH_ASKPASS=~/.ssh_askpass ssh-add - && \
     python scripts/download_resources.py config/build-config.yml assets artifacts server_data
 
 ADD scripts/extract_game_info.py scripts/extract_game_info.py
