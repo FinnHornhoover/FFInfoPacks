@@ -47,8 +47,14 @@ def handle_texture(d: Any, outpath: str):
 
 def icon_bundle_extract(path: Path, outdir: Path):
     try:
+        searched_assets = []
+
         with open(path / "Icons.resourceFile", "rb") as f:
-            asset = unitypack.load(f).assets[0]
+            searched_assets.append(unitypack.load(f).assets[0])
+
+        if (path / "Retro_shared.resourceFile").is_file():
+            with open(path / "Retro_shared.resourceFile", "rb") as f:
+                searched_assets.append(unitypack.load(f).assets[0])
 
         tutasset = None
         if (path / "Tutorial.resourceFile").is_file():
@@ -60,36 +66,39 @@ def icon_bundle_extract(path: Path, outdir: Path):
             with open(path / "TrainingGrounds.resourceFile", "rb") as f:
                 trainasset = unitypack.load(f).assets[0]
 
-        cont = asset.objects[1].read()["m_Container"]
-        for path, mtdt in cont:
-            path_obj = Path(path)
-            (outdir / path_obj.parent).mkdir(parents=True, exist_ok=True)
+        for asset in searched_assets:
+            cont = asset.objects[1].read()["m_Container"]
+            for path, mtdt in cont:
+                path_obj = Path(path)
+                if path_obj.parent.name not in ["icons", "help"]:
+                    continue
+                (outdir / path_obj.parent).mkdir(parents=True, exist_ok=True)
 
-            outname = fixext(path_obj.name)
-            outpath = outdir / path_obj.parent / outname
+                outname = fixext(path_obj.name)
+                outpath = outdir / path_obj.parent / outname
 
-            if outpath.exists():
-                print("** {} exists, skipping...".format(outpath))
-                continue
+                if outpath.exists():
+                    print("** {} exists, skipping...".format(outpath))
+                    continue
 
-            obj_ptr = mtdt["asset"]
-            try:
-                obj = obj_ptr.object
-            except:
-                if tutasset is None:
-                    if trainasset is None:
-                        print("unresolved asset reference: {} {}".format(obj_ptr.source_asset.asset_refs, outpath))
-                        traceback.print_exc(file=sys.stdout)
-                        continue
-                    obj = trainasset.objects[obj_ptr.path_id]
-                else:
-                    obj = tutasset.objects[obj_ptr.path_id]
+                obj_ptr = mtdt["asset"]
+                try:
+                    obj = obj_ptr.object
+                except:
+                    if tutasset is None:
+                        if trainasset is None:
+                            print("unresolved asset reference: {} {}".format(obj_ptr.source_asset.asset_refs, outpath))
+                            traceback.print_exc(file=sys.stdout)
+                            continue
+                        obj = trainasset.objects[obj_ptr.path_id]
+                    else:
+                        obj = tutasset.objects[obj_ptr.path_id]
 
-            try:
-                handle_texture(obj.read(), outpath)
-            except:
-                print("** error while handling object {} {}".format(mtdt["asset"], outpath))
-                traceback.print_exc(file=sys.stdout)
+                try:
+                    handle_texture(obj.read(), outpath)
+                except:
+                    print("** error while handling object {} {}".format(mtdt["asset"], outpath))
+                    traceback.print_exc(file=sys.stdout)
 
     except:
         print("* error while handling assetbundle Icons.resourceFile {}".format(outdir))

@@ -1,6 +1,6 @@
 config:
   retrobution:
-    revision: 1 # Increment this when the resources change
+    revision: 2 # Increment this when the resources change
     api-url: https://api.ffretrobution.net
     server-data:
       repository: Retrobution/Retrobution-TableData
@@ -8,6 +8,7 @@ config:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
+      - Retro_shared.resourceFile
   beta-20100104:
     revision: 3 # Increment this when the resources change
     nickname: original
