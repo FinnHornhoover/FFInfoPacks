@@ -1,6 +1,6 @@
 config:
   retrobution:
-    revision: 3 # Increment this when the resources change
+    revision: 4 # Increment this when the resources change
     api-url: https://api.ffretrobution.net
     server-data:
       repository: Retrobution/Retrobution-TableData

@@ -80,6 +80,8 @@ class MapFuncs:
             7: "generalitemicon",
             9: "generalitemicon",
             10: "vehicle",
+            11: "mobicon",
+            12: "vehicle",
         }
 
         return [

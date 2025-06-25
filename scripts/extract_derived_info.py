@@ -76,8 +76,10 @@ ITEM_ICON_PREFIXES = [
     "cosicon",
     "cosicon",
     "generalitemicon",
-    "error",
+    "mobicon",
     "generalitemicon",
+    "vehicle",
+    "error",
     "vehicle",
 ]
 NPC_ICON_PREFIXES = [
@@ -471,7 +473,7 @@ def construct_item_info_data(sources: dict[str, dict]) -> None:
                 "VehicleClass": vehicle_class,
                 "Name": name,
                 "Description": description,
-                "Icon": f"icons/{ITEM_ICON_PREFIXES[i]}_{icon_obj['m_iIconNumber']:02d}.png" if icon_obj else "icons/error_00.png",
+                "Icon": f"icons/{ITEM_ICON_PREFIXES[icon_obj['m_iIconType']]}_{icon_obj['m_iIconNumber']:02d}.png" if icon_obj else "icons/error_00.png",
             }
 
 
