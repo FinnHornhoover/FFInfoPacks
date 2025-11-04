@@ -256,7 +256,65 @@ SOURCE_TYPE_NAME_FIELD_MAP = {
     "MissionReward": "MissionName",
     "MissionRewardCrate": "MissionName",
 }
-
+RETROBUTION_ADDITIONAL_MOB_TYPES = {
+    3369: {
+        "name": "The Weeper",
+        "season_code": "",
+        "x": 267313,
+        "y": 380247,
+        "z": -3710,
+        "angle": -108,
+        "instance_id": 24,
+    },
+    3168: {
+        "name": "Lv35 Echo Echo",
+        "season_code": "",
+        "x": 316703,
+        "y": 757442,
+        "z": 5242,
+        "angle": 156,
+        "instance_id": 3,
+    },
+    3171: {
+        "name": "Lv36 Echo Echo",
+        "season_code": "",
+        "x": 316703,
+        "y": 757442,
+        "z": 5242,
+        "angle": 156,
+        "instance_id": 3,
+    },
+    54: {
+        "name": "Pumpkin Spawn",
+        "season_code": "pumpkinjuice",
+        "x": 280278,
+        "y": 350155,
+        "z": -4851,
+        "angle": 0,
+        "instance_id": WORLD_INSTANCE_ID,
+    },
+    3415: {
+        "name": "Jumbo Pumpkin Spawn",
+        "season_code": "pumpkinjuice",
+        "x": 280278,
+        "y": 350155,
+        "z": -4851,
+        "angle": 0,
+        "instance_id": WORLD_INSTANCE_ID,
+    },
+}
+RETROBUTION_REMOVE_EGG_TYPES = [
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+]
 
 def patch(base_obj: dict, patch_obj: dict) -> None:
     for key, value in patch_obj.items():
@@ -704,19 +762,12 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
                 sources["npc_mob_info"][follower_mob_type_id][str_follower_id] = sources["mob_info"][follower_mob_type_id][str_follower_id]
 
     if sources["is_retrobution"]:
-        additional_mob_types = {
-            3369,  # The Weeper
-            3168,  # Lv35 Echo Echo
-            3171,  # Lv36 Echo Echo
-        }
-        for i, mob_type_id in enumerate(additional_mob_types):
+        for i, (mob_type_id, additional_mob_info) in enumerate(RETROBUTION_ADDITIONAL_MOB_TYPES.items()):
             if mob_type_id not in sources["mob_type_info"]:
                 continue
 
-            if mob_type_id == 3369:
-                x, y, z, angle, instance_id = 267313, 380247, -3710, -108, 24
-            else:
-                x, y, z, angle, instance_id = 316703, 757442, 5242, 156, 3
+            if additional_mob_info["season_code"] and additional_mob_info["season_code"] not in sources["drops_map"]["CodeItems"]:
+                continue
 
             mob_id = MOB_SPECIAL_ID_OFFSET + i
             sources["mob_info"][mob_type_id][str(mob_id)] = {
@@ -726,12 +777,12 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
                 "TypeIcon": sources["mob_type_info"][mob_type_id]["Icon"],
                 "FollowsMobID": "",
                 "HP": sources["mob_type_info"][mob_type_id]["StandardHP"],
-                "X": x,
-                "Y": y,
-                "Z": z,
-                "Angle": angle,
-                "InstanceID": instance_id,
-                "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], 0, 0)),
+                "X": additional_mob_info["x"],
+                "Y": additional_mob_info["y"],
+                "Z": additional_mob_info["z"],
+                "Angle": additional_mob_info["angle"],
+                "InstanceID": additional_mob_info["instance_id"],
+                "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], additional_mob_info["x"], additional_mob_info["y"])),
             }
             sources["npc_mob_info"][mob_type_id][str(mob_id)] = sources["mob_info"][mob_type_id][str(mob_id)]
 
@@ -796,8 +847,7 @@ def construct_egg_data(sources: dict[str, dict]) -> None:
 
     if sources["is_retrobution"]:
         # remove test eggs
-        remove_egg_types = {129, 130, 131, 132, 133, 134, 135, 136, 137, 138}
-        for egg_type_id in remove_egg_types:
+        for egg_type_id in RETROBUTION_REMOVE_EGG_TYPES:
             del sources["egg_type_info"][egg_type_id]
             del sources["egg_info"][egg_type_id]
 
@@ -2197,9 +2247,9 @@ def construct_valid_id_sets(sources: dict) -> None:
 
     if sources["is_retrobution"]:
         sources["valid_mob_types"].update({
-            3369,  # The Weeper
-            3168,  # Lv35 Echo Echo
-            3171,  # Lv36 Echo Echo
+            mob_type_id
+            for mob_type_id, additional_mob_info in RETROBUTION_ADDITIONAL_MOB_TYPES.items()
+            if not additional_mob_info["season_code"] or additional_mob_info["season_code"] in sources["drops_map"]["CodeItems"]
         })
 
     sources["valid_npc_mob_types"] = sources["valid_npc_types"] | sources["valid_mob_types"]
