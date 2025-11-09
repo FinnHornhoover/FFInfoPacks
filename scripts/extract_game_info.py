@@ -5,7 +5,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-from PIL import ImageOps
+from PIL import Image, ImageOps
 from tqdm import tqdm
 
 import unitypack
@@ -25,7 +25,7 @@ def fixext(name: str) -> str:
     return name
 
 
-def handle_texture(d: Any, outpath: str):
+def handle_texture(d: Any, outpath: Path):
     try:
         image = d.image
     except NotImplementedError:
@@ -35,6 +35,12 @@ def handle_texture(d: Any, outpath: str):
     if image is None:
         print("WARNING: %s is an empty image" % (outpath))
         return
+
+    # I have no idea why I have to fix this lmao
+    str_outpath = str(outpath)
+    if "retrobution" in str_outpath and "cosicon_2184" in str_outpath:
+        r, g, b, a = image.split()
+        image = Image.merge("RGBA", (b, g, r, a))
 
     # Texture2D objects are flipped
     img = ImageOps.flip(image)
