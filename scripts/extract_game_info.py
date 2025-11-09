@@ -10,6 +10,16 @@ from tqdm import tqdm
 
 import unitypack
 
+RETROBUTION_BGRA_ICONS = [
+    "cosicon_2184",
+    "wpnicon_1032",
+    "wpnicon_1033",
+    "wpnicon_1034",
+    "wpnicon_1035",
+    "wpnicon_1036",
+    "wpnicon_1037",
+]
+
 
 def fixext(name: str) -> str:
     tab = {"dds": "png", "nif": "obj", "kfm": "obj", "wav": "ogg",
@@ -38,7 +48,7 @@ def handle_texture(d: Any, outpath: Path):
 
     # I have no idea why I have to fix this lmao
     str_outpath = str(outpath)
-    if "retrobution" in str_outpath and "cosicon_2184" in str_outpath:
+    if "retrobution" in str_outpath and any(icon_name in str_outpath for icon_name in RETROBUTION_BGRA_ICONS):
         r, g, b, a = image.split()
         image = Image.merge("RGBA", (b, g, r, a))
 
