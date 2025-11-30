@@ -6,7 +6,7 @@ import zipfile
 from collections import defaultdict
 from functools import wraps
 from pathlib import Path
-from typing import Callable, Optional, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 
 import gspread
 import requests
@@ -153,6 +153,22 @@ def read_data_from_csv(csv_path: Path) -> tuple[list[list[str]], int, int]:
     return csv_content, row_count, col_count
 
 
+def fetch_column_metadata(spreadsheet: gspread.Spreadsheet) -> dict[str, Any]:
+    # Construct fields parameter to limit response size
+    params = {
+        "fields": (
+            "sheets(properties(sheetId,title),"
+            "data(columnMetadata(pixelSize)))"
+        )
+    }
+    response = spreadsheet.client.request(
+        "GET",
+        f"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet.id}",
+        params=params,
+    )
+    return response.json()["sheets"]
+
+
 @exponential_backoff
 def get_or_create_spreadsheet(gc: gspread.Client, csv_file_name: str) -> gspread.Spreadsheet:
     spreadsheet_name = to_sheet_name(csv_file_name)
@@ -194,7 +210,7 @@ def delete_worksheet(spreadsheet: gspread.Spreadsheet, worksheet_title: str) -> 
 
 @exponential_backoff
 def resize_long_columns(spreadsheet: gspread.Spreadsheet) -> None:
-    table_metadata = spreadsheet.fetch_sheet_metadata({"includeGridData": True})["sheets"]
+    table_metadata = fetch_column_metadata(spreadsheet)
 
     requests = []
     for worksheet_metadata in table_metadata:
