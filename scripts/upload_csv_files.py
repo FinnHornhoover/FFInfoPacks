@@ -26,17 +26,11 @@ def exponential_backoff(func: Callable[..., T]) -> Callable[..., T]:
             try:
                 result = func(*args, **kwargs)
                 return result
-            except gspread.exceptions.APIError as e:
-                if e.response.status_code == 429:
-                    # wait 64 seconds and double every attempt to avoid rate limiting
-                    time.sleep(2 ** (i + 6))
-                    continue
-                raise e
-            except requests.exceptions.ConnectionError as e:
+            except (gspread.exceptions.APIError, requests.exceptions.ConnectionError):
                 # wait 64 seconds and double every attempt to avoid rate limiting
                 time.sleep(2 ** (i + 6))
                 continue
-        raise RuntimeError(f"Failed to execute {func.__name__} after 10 attempts.")
+        raise RuntimeError(f"Failed to execute {func.__name__} after 5 attempts.")
     return wrapper
 
 
