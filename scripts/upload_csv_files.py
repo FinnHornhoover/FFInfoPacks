@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Callable, Optional, TypeVar
 
 import gspread
+import requests
 import yaml
 from tqdm import tqdm
 
@@ -31,6 +32,10 @@ def exponential_backoff(func: Callable[..., T]) -> Callable[..., T]:
                     time.sleep(2 ** (i + 6))
                     continue
                 raise e
+            except requests.exceptions.ConnectionError as e:
+                # wait 64 seconds and double every attempt to avoid rate limiting
+                time.sleep(2 ** (i + 6))
+                continue
         raise RuntimeError(f"Failed to execute {func.__name__} after 10 attempts.")
     return wrapper
 
@@ -135,7 +140,6 @@ def print_diff_map(diff_map: dict[str, dict[str, list[Optional[str]]]]) -> None:
         indent=2,
         default_flow_style=False,
     ))
-    print("--------------------------------")
 
 
 def read_data_from_csv(csv_path: Path) -> tuple[list[list[str]], int, int]:
