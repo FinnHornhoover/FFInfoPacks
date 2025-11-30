@@ -1,5 +1,4 @@
 import csv
-import json
 import shutil
 import sys
 import time
@@ -10,11 +9,13 @@ from pathlib import Path
 from typing import Callable, Optional, TypeVar
 
 import gspread
+import yaml
 from tqdm import tqdm
 
 T = TypeVar("T")
 GOOGLE_FOLDER_ID = "1LhYdMCUjOmiTGFwnJ4o8WGM2C2ZSyZq3"
 MAX_CELL_SIZE = 50000
+MAX_COL_SIZE_PX = 1000
 
 
 def exponential_backoff(func: Callable[..., T]) -> Callable[..., T]:
@@ -93,7 +94,7 @@ def get_google_sheets_csv_map(gc: gspread.Client) -> dict[str, dict[str, str]]:
 def get_diff_map(
     local_csv_map: dict[str, dict[str, str]],
     google_sheets_csv_map: dict[str, dict[str, str]],
-) -> dict[str, dict[str, list[Optional[str], str]]]:
+) -> dict[str, dict[str, list[Optional[str]]]]:
     diff_map = {}
 
     for csv_file_name, build_revision_map in local_csv_map.items():
@@ -119,6 +120,22 @@ def get_diff_map(
             diff_map[csv_file_name] = diff_build_revision_map
 
     return diff_map
+
+
+def print_diff_map(diff_map: dict[str, dict[str, list[Optional[str]]]]) -> None:
+    print("Updating:")
+    print(yaml.dump(
+        {
+            csv_name: [
+                f"{revs[0]} -> {revs[1]}"
+                for revs in build_revision_map.values()
+            ]
+            for csv_name, build_revision_map in diff_map.items()
+        },
+        indent=2,
+        default_flow_style=False,
+    ))
+    print("--------------------------------")
 
 
 def read_data_from_csv(csv_path: Path) -> tuple[list[list[str]], int, int]:
@@ -178,6 +195,37 @@ def delete_worksheet(spreadsheet: gspread.Spreadsheet, worksheet_title: str) -> 
 
 
 @exponential_backoff
+def resize_long_columns(spreadsheet: gspread.Spreadsheet) -> None:
+    table_metadata = spreadsheet.fetch_sheet_metadata({"includeGridData": True})["sheets"]
+
+    requests = []
+    for worksheet_metadata in table_metadata:
+        col_data = worksheet_metadata.get("data", [{}])[0].get("columnMetadata", [])
+
+        for column_id, column_metadata in enumerate(col_data):
+            column_width = column_metadata.get("pixelSize", 0)
+
+            if column_width > MAX_COL_SIZE_PX:
+                requests.append({
+                    "updateDimensionProperties": {
+                        "range": {
+                            "sheetId": worksheet_metadata["properties"]["sheetId"],
+                            "dimension": "COLUMNS",
+                            "startIndex": column_id,
+                            "endIndex": column_id + 1,
+                        },
+                        "properties": {
+                            "pixelSize": MAX_COL_SIZE_PX
+                        },
+                        "fields": "pixelSize"
+                    }
+                })
+
+    if requests:
+        spreadsheet.batch_update({"requests": requests})
+
+
+@exponential_backoff
 def sort_spreadsheet_worksheets(spreadsheet: gspread.Spreadsheet) -> None:
     worksheet_titles = [(worksheet.title, worksheet) for worksheet in spreadsheet.worksheets()]
     worksheet_titles.sort(key=lambda x: x[0], reverse=True)
@@ -218,6 +266,7 @@ def update_or_create_google_sheets(
             # Workaround for initial creation of the spreadsheet
             delete_worksheet(spreadsheet, spreadsheet.title)
 
+            resize_long_columns(spreadsheet)
             sort_spreadsheet_worksheets(spreadsheet)
 
 
@@ -230,8 +279,7 @@ def main(google_service_account_json: Path, artifacts_dir: Path):
     gcloud_csv_map = get_google_sheets_csv_map(gc)
     diff_map = get_diff_map(csv_map, gcloud_csv_map)
 
-    print("Updating [old_revision_name, new_revision_name]:")
-    print(json.dumps(diff_map, indent=2))
+    print_diff_map(diff_map)
 
     try:
         update_or_create_google_sheets(gc, extracted_root_dir, diff_map)
