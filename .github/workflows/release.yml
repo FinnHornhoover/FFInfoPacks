@@ -68,3 +68,28 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  upload-csv-files:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed to count previous releases
+
+      - name: Build Docker image for uploading CSV files
+        # This is kept as a separate step to avoid breaking releases
+        # It also checks if release went alright and files are downloadable
+        # This will always use whatever's in the latest release, so you can't mess it up, even when ran locally
+        # In the event that you or this script does mess it up, or you want to add a new Google Sheets file, do these:
+        # 1. Delete the Google Spreadsheet file if it exists (or delete the worksheets that this script generated in it,
+        #    in which case you don't have to delete and re-create the spreadsheet itself, you can just delete the
+        #    worksheets that are faulty).
+        # 2. Make sure that the only other worksheet(s) in the Spreadsheet are the ones that this script generated
+        #    OR ones that are named the same as the spreadsheet.
+        # 3. Go to the Google Drive folder and make an unnamed spreadsheet. Then, import the sample CSV file into it,
+        #    make sure that the Spreadsheet name and the worksheet name are the same.
+        # 4. Run this action or script again. The script checks per build and per file what it can update.
+        run: docker build -t ff-extractor-upload-csv -f Dockerfile.upload_csv --secret id=GOOGLE_SERVICE_ACCOUNT_JSON .
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}

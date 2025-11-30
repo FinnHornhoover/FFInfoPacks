@@ -1,0 +1,5 @@
+httpx
+aiofiles
+PyYAML
+tqdm
+gspread

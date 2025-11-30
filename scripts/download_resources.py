@@ -2,7 +2,7 @@ import sys
 import asyncio
 import subprocess
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import aiofiles
 import httpx
@@ -81,7 +81,7 @@ async def download_zip_or_resources(
 
 
 async def download_resources(
-    config: dict[str, dict[str, Any]], asset_root: Path, artifact_root: Path, server_data_root: Path
+    config: dict[str, dict[str, Any]], asset_root: Path, artifact_root: Path, server_data_root: Optional[Path]
 ):
     async with httpx.AsyncClient(
         limits=httpx.Limits(max_connections=5),
@@ -95,7 +95,8 @@ async def download_resources(
         for build, build_config in config.items():
             (asset_root / build).mkdir(parents=True, exist_ok=True)
 
-            pull_table_data(server_data_root, build_config["server-data"])
+            if server_data_root:
+                pull_table_data(server_data_root, build_config["server-data"])
 
             coroutines.append(
                 download_zip_or_resources(
@@ -106,7 +107,7 @@ async def download_resources(
         await tqdm_asyncio.gather(*coroutines)
 
 
-async def main(config_path: Path, asset_root: Path, artifact_root: Path, server_data_root: Path):
+async def main(config_path: Path, asset_root: Path, artifact_root: Path, server_data_root: Optional[Path] = None):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)["config"]
 
@@ -118,8 +119,8 @@ async def main(config_path: Path, asset_root: Path, artifact_root: Path, server_
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        print("Usage: python download_resources.py <config_path> <asset_root> <artifact_root> <server_data_root>")
+    if len(sys.argv) != 4 and len(sys.argv) != 5:
+        print("Usage: python download_resources.py <config_path> <asset_root> <artifact_root> [<server_data_root>]")
         sys.exit(1)
 
     asyncio.run(main(*map(Path, sys.argv[1:])))
