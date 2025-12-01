@@ -82,14 +82,13 @@ jobs:
         # It also checks if release went alright and files are downloadable
         # This will always use whatever's in the latest release, so you can't mess it up, even when ran locally
         # In the event that you or this script does mess it up, or you want to add a new Google Sheets file, do these:
-        # 1. Delete the Google Spreadsheet file if it exists (or delete the worksheets that this script generated in it,
-        #    in which case you don't have to delete and re-create the spreadsheet itself, you can just delete the
-        #    worksheets that are faulty).
-        # 2. Make sure that the only other worksheet(s) in the Spreadsheet are the ones that this script generated
-        #    OR ones that are named the same as the spreadsheet.
-        # 3. Go to the Google Drive folder and make an unnamed spreadsheet. Then, import the sample CSV file into it,
-        #    make sure that the Spreadsheet name and the worksheet name are the same.
-        # 4. Run this action or script again. The script checks per build and per file what it can update.
+        # 1. For a new file, create a new Google Sheets file in the Google Drive folder.
+        #    Otherwise, open the file you want to update.
+        # 2. Rename your local CSV file like "item_source_info_table.csv" -> "Item_Source_Info_Table.csv".
+        # 3. Import the CSV into the Google Sheets file, replace the existing spreadsheet.
+        # 4. If the Google Sheets file is unnamed, rename it to the same name as the worksheet name.
+        # 5. Run this action or script again. The script checks per build and per file what it can update,
+        #    but doing it per file every time is more straightforward.
         run: docker build -t ff-extractor-upload-csv -f Dockerfile.upload_csv --secret id=GOOGLE_SERVICE_ACCOUNT_JSON .
         env:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
