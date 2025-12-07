@@ -203,9 +203,11 @@ def set_basic_filter_for_worksheet(worksheet: gspread.Worksheet) -> None:
 
 @exponential_backoff
 def delete_worksheet(spreadsheet: gspread.Spreadsheet, worksheet_title: str) -> None:
-    worksheet = spreadsheet.worksheet(worksheet_title)
-    if worksheet:
+    try:
+        worksheet = spreadsheet.worksheet(worksheet_title)
         spreadsheet.del_worksheet(worksheet)
+    except gspread.exceptions.WorksheetNotFound:
+        return
 
 
 @exponential_backoff
