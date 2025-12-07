@@ -20,8 +20,8 @@ SEP = "::"
 WORLD_INSTANCE_ID = 0
 NPC_ID_OFFSET = 1
 MOB_ID_OFFSET = 10000
-MOB_GROUP_ID_OFFSET = 20000
-MOB_SPECIAL_ID_OFFSET = 30000
+MOB_GROUP_ID_OFFSET = 30000
+MOB_SPECIAL_ID_OFFSET = 40000
 TILE_WIDTH = 51200
 ITEM_TYPES = [
     "Weapon",
@@ -255,6 +255,9 @@ SOURCE_TYPE_NAME_FIELD_MAP = {
     "Event": "EventName",
     "MissionReward": "MissionName",
     "MissionRewardCrate": "MissionName",
+}
+WRONG_DIALOG_BUBBLE_IDS = {
+    21822: 12822,
 }
 RETROBUTION_ADDITIONAL_MOB_TYPES = {
     3369: {
@@ -964,6 +967,9 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             task_start_dialog_bubble_npc_id = task_obj["m_iSTDialogBubbleNPCID"]
             task_end_dialog_bubble_npc_id = task_obj["m_iSUDialogBubbleNPCID"]
             task_fail_dialog_bubble_npc_id = task_obj["m_iFDialogBubbleNPCID"]
+            task_start_dialog_bubble_id = task_obj["m_iSTDialogBubble"]
+            task_end_dialog_bubble_id = task_obj["m_iSUDialogBubble"]
+            task_fail_dialog_bubble_id = task_obj["m_iFDialogBubble"]
             task_reward_id = task_obj["m_iSUReward"]
             task_end_outgoing_task_obj = mission_task_dict[task_end_outgoing_task_id] if task_end_outgoing_task_id in mission_task_dict else mission_task_dict[0]
             task_fail_outgoing_task_obj = mission_task_dict[task_fail_outgoing_task_id] if task_fail_outgoing_task_id in mission_task_dict else mission_task_dict[0]
@@ -1007,16 +1013,24 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 )
             }
 
+            # there are some wrong dialog bubble IDs in the data, so we need to handle them
+            if task_start_dialog_bubble_id in WRONG_DIALOG_BUBBLE_IDS:
+                task_start_dialog_bubble_id = WRONG_DIALOG_BUBBLE_IDS[task_start_dialog_bubble_id]
+            if task_end_dialog_bubble_id in WRONG_DIALOG_BUBBLE_IDS:
+                task_end_dialog_bubble_id = WRONG_DIALOG_BUBBLE_IDS[task_end_dialog_bubble_id]
+            if task_fail_dialog_bubble_id in WRONG_DIALOG_BUBBLE_IDS:
+                task_fail_dialog_bubble_id = WRONG_DIALOG_BUBBLE_IDS[task_fail_dialog_bubble_id]
+
             mission_info_obj["Tasks"][task_id] = {
                 "ID": task_id,
                 "TypeID": task_type_id,
                 "Type": MISSION_TASK_TYPES[task_type_id],
                 "CurrentObjectiveID": current_objective_id,
                 "CurrentObjective": mission_string_list[current_objective_id]["m_pstrNameString"],
-                "RequiredInstanceID": mission_obj["m_iRequireInstanceID"],
-                "RequiredInstance": warp_name_data_list[mission_obj["m_iRequireInstanceID"]]["m_pstrNameString"],
-                "TimeLimitSeconds": mission_obj["m_iSTGrantTimer"],
-                "TimeLimit": humanize.precisedelta(mission_obj["m_iSTGrantTimer"]),
+                "RequiredInstanceID": task_obj["m_iRequireInstanceID"],
+                "RequiredInstance": warp_name_data_list[task_obj["m_iRequireInstanceID"]]["m_pstrNameString"],
+                "TimeLimitSeconds": task_obj["m_iSTGrantTimer"],
+                "TimeLimit": humanize.precisedelta(task_obj["m_iSTGrantTimer"]),
                 "EscortNPCID": task_escort_npc_id,
                 "EscortNPCName": sources["npc_mob_type_info"][task_escort_npc_id]["Name"] if task_escort_npc_id in sources["npc_mob_type_info"] else "",
                 "EscortNPCIcon": sources["npc_mob_type_info"][task_escort_npc_id]["Icon"] if task_escort_npc_id in sources["npc_mob_type_info"] else "",
@@ -1024,13 +1038,13 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "WaypointNPCName": sources["npc_mob_type_info"][task_waypoint_npc_id]["Name"] if task_waypoint_npc_id in sources["npc_mob_type_info"] else "",
                 "WaypointNPCIcon": sources["npc_mob_type_info"][task_waypoint_npc_id]["Icon"] if task_waypoint_npc_id in sources["npc_mob_type_info"] else "",
                 "MessageOnStart": {
-                    "TypeID": mission_obj["m_iSTMessageType"],
-                    "Type": MISSION_MESSAGE_TYPES.get(mission_obj["m_iSTMessageType"], "None"),
-                    "Text": mission_string_list[mission_obj["m_iSTMessageTextID"]]["m_pstrNameString"],
+                    "TypeID": task_obj["m_iSTMessageType"],
+                    "Type": MISSION_MESSAGE_TYPES.get(task_obj["m_iSTMessageType"], "None"),
+                    "Text": mission_string_list[task_obj["m_iSTMessageTextID"]]["m_pstrNameString"],
                     "SendNPCID": task_start_send_npc_id,
                     "SendNPCName": sources["npc_mob_type_info"][task_start_send_npc_id]["Name"] if task_start_send_npc_id in sources["npc_mob_type_info"] else "",
                     "SendNPCIcon": sources["npc_mob_type_info"][task_start_send_npc_id]["Icon"] if task_start_send_npc_id in sources["npc_mob_type_info"] else "",
-                    "DialogBubble": mission_string_list[mission_obj["m_iSTDialogBubble"]]["m_pstrNameString"],
+                    "DialogBubble": mission_string_list[task_start_dialog_bubble_id]["m_pstrNameString"],
                     "DialogBubbleNPCID": task_start_dialog_bubble_npc_id,
                     "DialogBubbleNPCName": sources["npc_mob_type_info"][task_start_dialog_bubble_npc_id]["Name"] if task_start_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
                     "DialogBubbleNPCIcon": sources["npc_mob_type_info"][task_start_dialog_bubble_npc_id]["Icon"] if task_start_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
@@ -1041,13 +1055,13 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     "JournalDetailedTaskDescription": mission_string_list[task_start_journal_obj["m_iDetailedTaskDesc"]]["m_pstrNameString"],
                 },
                 "MessageOnEnd": {
-                    "TypeID": mission_obj["m_iSUMessageType"],
-                    "Type": MISSION_MESSAGE_TYPES.get(mission_obj["m_iSUMessageType"], "None"),
-                    "Text": mission_string_list[mission_obj["m_iSUMessagetextID"]]["m_pstrNameString"],
+                    "TypeID": task_obj["m_iSUMessageType"],
+                    "Type": MISSION_MESSAGE_TYPES.get(task_obj["m_iSUMessageType"], "None"),
+                    "Text": mission_string_list[task_obj["m_iSUMessagetextID"]]["m_pstrNameString"],
                     "SendNPCID": task_end_send_npc_id,
                     "SendNPCName": sources["npc_mob_type_info"][task_end_send_npc_id]["Name"] if task_end_send_npc_id in sources["npc_mob_type_info"] else "",
                     "SendNPCIcon": sources["npc_mob_type_info"][task_end_send_npc_id]["Icon"] if task_end_send_npc_id in sources["npc_mob_type_info"] else "",
-                    "DialogBubble": mission_string_list[mission_obj["m_iSUDialogBubble"]]["m_pstrNameString"],
+                    "DialogBubble": mission_string_list[task_end_dialog_bubble_id]["m_pstrNameString"],
                     "DialogBubbleNPCID": task_end_dialog_bubble_npc_id,
                     "DialogBubbleNPCName": sources["npc_mob_type_info"][task_end_dialog_bubble_npc_id]["Name"] if task_end_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
                     "DialogBubbleNPCIcon": sources["npc_mob_type_info"][task_end_dialog_bubble_npc_id]["Icon"] if task_end_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
@@ -1058,13 +1072,13 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     "JournalDetailedTaskDescription": mission_string_list[task_end_journal_obj["m_iDetailedTaskDesc"]]["m_pstrNameString"],
                 },
                 "MessageOnFail": {
-                    "TypeID": mission_obj["m_iFMessageType"],
-                    "Type": MISSION_MESSAGE_TYPES.get(mission_obj["m_iFMessageType"], "None"),
-                    "Text": mission_string_list[mission_obj["m_iFMessageTextID"]]["m_pstrNameString"],
+                    "TypeID": task_obj["m_iFMessageType"],
+                    "Type": MISSION_MESSAGE_TYPES.get(task_obj["m_iFMessageType"], "None"),
+                    "Text": mission_string_list[task_obj["m_iFMessageTextID"]]["m_pstrNameString"],
                     "SendNPCID": task_fail_send_npc_id,
                     "SendNPCName": sources["npc_mob_type_info"][task_fail_send_npc_id]["Name"] if task_fail_send_npc_id in sources["npc_mob_type_info"] else "",
                     "SendNPCIcon": sources["npc_mob_type_info"][task_fail_send_npc_id]["Icon"] if task_fail_send_npc_id in sources["npc_mob_type_info"] else "",
-                    "DialogBubble": mission_string_list[mission_obj["m_iFDialogBubble"]]["m_pstrNameString"],
+                    "DialogBubble": mission_string_list[task_fail_dialog_bubble_id]["m_pstrNameString"],
                     "DialogBubbleNPCID": task_fail_dialog_bubble_npc_id,
                     "DialogBubbleNPCName": sources["npc_mob_type_info"][task_fail_dialog_bubble_npc_id]["Name"] if task_fail_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
                     "DialogBubbleNPCIcon": sources["npc_mob_type_info"][task_fail_dialog_bubble_npc_id]["Icon"] if task_fail_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
@@ -1087,46 +1101,46 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                         "QuestItemDropPercent": item_drop_percent,
                     }
                     for mob_type_id, num_to_kill, item_id, item_num_needed, item_drop_percent in zip(
-                        mission_obj["m_iCSUEnemyID"],
-                        mission_obj["m_iCSUNumToKill"],
-                        mission_obj["m_iCSUItemID"],
-                        mission_obj["m_iCSUItemNumNeeded"],
-                        mission_obj["m_iSTItemDropRate"],
+                        task_obj["m_iCSUEnemyID"],
+                        task_obj["m_iCSUNumToKill"],
+                        task_obj["m_iCSUItemID"],
+                        task_obj["m_iCSUItemNumNeeded"],
+                        task_obj["m_iSTItemDropRate"],
                     )
                     if mob_type_id > 0
                 },
                 "QuestItemChangeOnStart": {
                     f"{item_id:04d}{SEP}{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": item_num_needed
                     for item_id, item_num_needed in zip(
-                        mission_obj["m_iSTItemID"],
-                        mission_obj["m_iSTItemNumNeeded"],
+                        task_obj["m_iSTItemID"],
+                        task_obj["m_iSTItemNumNeeded"],
                     )
                     if item_id > 0 and item_id < len(quest_item_data_list)
                 },
                 "QuestItemChangeOnEnd": {
                     f"{item_id:04d}{SEP}{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": item_num_needed
                     for item_id, item_num_needed in zip(
-                        mission_obj["m_iSUItem"],
-                        mission_obj["m_iSUInstancename"],
+                        task_obj["m_iSUItem"],
+                        task_obj["m_iSUInstancename"],
                     )
                     if item_id > 0 and item_id < len(quest_item_data_list)
                 },
                 "QuestItemChangeOnFail": {
                     f"{item_id:04d}{SEP}{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": item_num_needed
                     for item_id, item_num_needed in zip(
-                        mission_obj["m_iFItemID"],
-                        mission_obj["m_iFItemNumNeeded"],
+                        task_obj["m_iFItemID"],
+                        task_obj["m_iFItemNumNeeded"],
                     )
                     if item_id > 0 and item_id < len(quest_item_data_list)
                 },
                 "QuestItemsDeleted": [
                     f"{item_id:04d}{SEP}{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}"
-                    for item_id in mission_obj["m_iDelItemID"]
+                    for item_id in task_obj["m_iDelItemID"]
                     if item_id > 0 and item_id < len(quest_item_data_list)
                 ],
                 "GuideEmails": {
                     guide_name: mission_string_list[email_id]["m_pstrNameString"]
-                    for guide_name, email_id in zip(MISSION_GUIDE_TYPES[1:], mission_obj["m_iMentorEmailID"])
+                    for guide_name, email_id in zip(MISSION_GUIDE_TYPES[1:], task_obj["m_iMentorEmailID"])
                     if email_id > 0
                 },
             }
