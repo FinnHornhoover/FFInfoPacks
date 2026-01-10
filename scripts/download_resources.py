@@ -46,6 +46,7 @@ async def download_zip_or_resources(
     build_config: dict[str, Any],
     asset_root: Path,
     artifact_root: Path,
+    must_fetch_zip: bool,
 ):
     if "api-url" in build_config:
         api_info = await get_json_info(client, build_config["api-url"])
@@ -68,6 +69,9 @@ async def download_zip_or_resources(
             artifact_root / zip_name,
         )
     except httpx.HTTPStatusError:
+        if must_fetch_zip:
+            raise
+
         await asyncio.gather(
             *[
                 download_file(
@@ -100,7 +104,7 @@ async def download_resources(
 
             coroutines.append(
                 download_zip_or_resources(
-                    client, build, build_config, asset_root, artifact_root
+                    client, build, build_config, asset_root, artifact_root, must_fetch_zip=(server_data_root is None)
                 )
             )
 
