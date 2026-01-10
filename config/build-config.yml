@@ -1,6 +1,7 @@
 config:
   retrobution:
-    revision: 11 # Increment this when the resources change
+    revision: 12 # Increment this when the resources change
+    active_event: Knishmas # Possible values: None, Halloween, Knishmas, Valentines
     api-url: https://api.ffretrobution.net
     server-data:
       repository: Retrobution/Retrobution-TableData
