@@ -7,9 +7,17 @@ mission:
 nano:
   - -1
 npc:
-  - -1
+  - 700
 shiny:
-  - -1
+  - 130
+  - 131
+  - 132
+  - 133
+  - 134
+  - 135
+  - 136
+  - 137
+  - 138
 transportation:
   - -1
 backitem:

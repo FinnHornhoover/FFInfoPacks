@@ -27,7 +27,7 @@ RUN python scripts/filter_game_info.py config pre_filter output
 RUN rm -rf pre_filter
 
 ADD scripts/extract_derived_info.py scripts/extract_derived_info.py
-RUN python scripts/extract_derived_info.py config/build-config.yml output server_data
+RUN python scripts/extract_derived_info.py config output server_data
 RUN rm -rf server_data
 
 ADD scripts/zip_all_info.py scripts/zip_all_info.py

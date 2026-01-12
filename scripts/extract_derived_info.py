@@ -261,348 +261,7 @@ SOURCE_TYPE_NAME_FIELD_MAP = {
 WRONG_DIALOG_BUBBLE_IDS = {
     21822: 12822,
 }
-RETROBUTION_ADDITIONAL_NPC_TYPES = {
-    3298: {
-        "name": "Jeff the Spider",
-        "event_name": "Halloween",
-        "x": 280929,
-        "y": 331223,
-        "z": -5388,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3310: {
-        "name": "Fred Fredburger",
-        "event_name": "Halloween",
-        "x": 280929,
-        "y": 331223,
-        "z": -5388,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3429: {
-        "name": "The Grim Spreader",
-        "event_name": "Halloween",
-        "x": 280929,
-        "y": 331223,
-        "z": -5388,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    693: {
-        "name": "Fusion Ice King's Secret Lair",
-        "event_name": "Knishmas",
-        "x": 395074,
-        "y": 327118,
-        "z": -5686,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    1588: {
-        "name": "Fusion Gunter's Secret Lair",
-        "event_name": "Knishmas",
-        "x": 395074,
-        "y": 327118,
-        "z": -5686,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    1597: {
-        "name": "The Spire",
-        "event_name": "Knishmas",
-        "x": 395074,
-        "y": 327118,
-        "z": -5686,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    2567: {
-        "name": "Ice King",
-        "event_name": "Knishmas",
-        "x": 398245,
-        "y": 293811,
-        "z": -4941,
-        "angle": 0,
-        "instance_id": 143,
-    },
-    3269: {
-        "name": "Ice King",
-        "event_name": "Knishmas",
-        "x": 395074,
-        "y": 327118,
-        "z": -5686,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3267: {
-        "name": "Gunter",
-        "event_name": "Knishmas",
-        "x": 395074,
-        "y": 327118,
-        "z": -5686,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3311: {
-        "name": "Sour Ron",
-        "event_name": "Knishmas",
-        "x": 389997,
-        "y": 357650,
-        "z": -5375,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3411: {
-        "name": "Party Planner",
-        "event_name": "BirthdayBash",
-        "x": 389997,
-        "y": 357650,
-        "z": -5375,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3412: {
-        "name": "Retired Birthday Basher",
-        "event_name": "BirthdayBash",
-        "x": 389997,
-        "y": 357650,
-        "z": -5375,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3299: {
-        "name": "Blood Gnat Exterminator",
-        "event_name": "Valentines",
-        "x": 446970,
-        "y": 302928,
-        "z": -5605,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3301: {
-        "name": "Ext. Heartbreak",
-        "event_name": "Valentines",
-        "x": 446970,
-        "y": 302928,
-        "z": -5605,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3302: {
-        "name": "Dr. Estrangelove",
-        "event_name": "Valentines",
-        "x": 446970,
-        "y": 302928,
-        "z": -5605,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3308: {
-        "name": "Blood Gnat",
-        "event_name": "Valentines",
-        "x": 446970,
-        "y": 302928,
-        "z": -5605,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3312: {
-        "name": "Blood Gnat Queen",
-        "event_name": "Valentines",
-        "x": 433176,
-        "y": 403713,
-        "z": -5427,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3313: {
-        "name": "Johnny Bravo",
-        "event_name": "Valentines",
-        "x": 446970,
-        "y": 302928,
-        "z": -5605,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-}
-RETROBUTION_ADDITIONAL_MOB_TYPES = {
-    3369: {
-        "name": "The Weeper",
-        "event_name": "None",
-        "x": 267313,
-        "y": 380247,
-        "z": -3710,
-        "angle": -108,
-        "instance_id": 24,
-    },
-    3168: {
-        "name": "Lv35 Echo Echo",
-        "event_name": "None",
-        "x": 316703,
-        "y": 757442,
-        "z": 5242,
-        "angle": 156,
-        "instance_id": 3,
-    },
-    3171: {
-        "name": "Lv36 Echo Echo",
-        "event_name": "None",
-        "x": 316703,
-        "y": 757442,
-        "z": 5242,
-        "angle": 156,
-        "instance_id": 3,
-    },
-    54: {
-        "name": "Pumpkin Spawn",
-        "event_name": "Halloween",
-        "x": 280278,
-        "y": 350155,
-        "z": -4851,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3415: {
-        "name": "Jumbo Pumpkin Spawn",
-        "event_name": "Halloween",
-        "x": 280278,
-        "y": 350155,
-        "z": -4851,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    58: {
-        "name": "Penguin Pest",
-        "event_name": "Knishmas",
-        "x": 395074,
-        "y": 327118,
-        "z": -5686,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    150: {
-        "name": "Frozen Fowl",
-        "event_name": "Knishmas",
-        "x": 395074,
-        "y": 327118,
-        "z": -5686,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    252: {
-        "name": "Fusion Ice King",
-        "event_name": "Knishmas",
-        "x": 398137,
-        "y": 293401,
-        "z": -4941,
-        "angle": 0,
-        "instance_id": 142,
-    },
-    353: {
-        "name": "Fusion Ice King",
-        "event_name": "Knishmas",
-        "x": 390744,
-        "y": 296285,
-        "z": -4735,
-        "angle": 0,
-        "instance_id": 144,
-    },
-    344: {
-        "name": "Fusion Gunter",
-        "event_name": "Knishmas",
-        "x": 398245,
-        "y": 293811,
-        "z": -4941,
-        "angle": 0,
-        "instance_id": 143,
-    },
-    442: {
-        "name": "Fusion Gunter",
-        "event_name": "Knishmas",
-        "x": 390744,
-        "y": 296285,
-        "z": -4735,
-        "angle": 0,
-        "instance_id": 144,
-    },
-    446: {
-        "name": "Frosty Fowl",
-        "event_name": "Knishmas",
-        "x": 390744,
-        "y": 296285,
-        "z": -4735,
-        "angle": 0,
-        "instance_id": 144,
-    },
-    1158: {
-        "name": "Ice Titan",
-        "event_name": "Knishmas",
-        "x": 395074,
-        "y": 327118,
-        "z": -5686,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3408: {
-        "name": "Birthday Basher",
-        "event_name": "BirthdayBash",
-        "x": 389997,
-        "y": 357650,
-        "z": -5375,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3409: {
-        "name": "Party Popper",
-        "event_name": "BirthdayBash",
-        "x": 389997,
-        "y": 357650,
-        "z": -5375,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3419: {
-        "name": "Killer Blood Gnat",
-        "event_name": "Valentines",
-        "x": 446970,
-        "y": 302928,
-        "z": -5605,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-    3427: {
-        "name": "Killer Blood Gnat",
-        "event_name": "Valentines",
-        "x": 446970,
-        "y": 302928,
-        "z": -5605,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
 
-}
-RETROBUTION_ADDITIONAL_EGG_TYPES = {
-    129: {
-        "name": "Secret Snail Egg (Christmas 2019 07 06)",
-        "event_name": "Knishmas",
-        "x": 395074,
-        "y": 327118,
-        "z": -5686,
-        "angle": 0,
-        "instance_id": WORLD_INSTANCE_ID,
-    },
-}
-RETROBUTION_REMOVE_EGG_TYPES = [
-    130,
-    131,
-    132,
-    133,
-    134,
-    135,
-    136,
-    137,
-    138,
-]
 
 def patch(base_obj: dict, patch_obj: dict) -> None:
     for key, value in patch_obj.items():
@@ -1049,52 +708,53 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
                 }
                 sources["npc_mob_info"][follower_mob_type_id][str_follower_id] = sources["mob_info"][follower_mob_type_id][str_follower_id]
 
-    if sources["is_retrobution"]:
-        for i, (npc_type_id, additional_npc_info) in enumerate(RETROBUTION_ADDITIONAL_NPC_TYPES.items()):
-            if npc_type_id not in sources["npc_type_info"]:
-                continue
+    # add additional NPCs
+    for i, (npc_type_id, additional_npc_info) in enumerate(sources["extra_npcs"].items()):
+        if npc_type_id not in sources["npc_type_info"]:
+            continue
 
-            if additional_npc_info["event_name"] not in ["None", sources["active_event"]]:
-                continue
+        if additional_npc_info["event_name"] not in ["None", sources["active_event"]]:
+            continue
 
-            npc_id = NPC_SPECIAL_ID_OFFSET + i
-            sources["npc_info"][npc_type_id][str(npc_id)] = {
-                "ID": str(npc_id),
-                "TypeID": npc_type_id,
-                "TypeName": sources["npc_type_info"][npc_type_id]["Name"],
-                "TypeIcon": sources["npc_type_info"][npc_type_id]["Icon"],
-                "X": additional_npc_info["x"],
-                "Y": additional_npc_info["y"],
-                "Z": additional_npc_info["z"],
-                "Angle": additional_npc_info["angle"],
-                "InstanceID": additional_npc_info["instance_id"],
-                "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], additional_npc_info["x"], additional_npc_info["y"])),
-            }
-            sources["npc_mob_info"][npc_type_id][str(npc_id)] = sources["npc_info"][npc_type_id][str(npc_id)]
+        npc_id = NPC_SPECIAL_ID_OFFSET + i
+        sources["npc_info"][npc_type_id][str(npc_id)] = {
+            "ID": str(npc_id),
+            "TypeID": npc_type_id,
+            "TypeName": sources["npc_type_info"][npc_type_id]["Name"],
+            "TypeIcon": sources["npc_type_info"][npc_type_id]["Icon"],
+            "X": additional_npc_info["x"],
+            "Y": additional_npc_info["y"],
+            "Z": additional_npc_info["z"],
+            "Angle": additional_npc_info["angle"],
+            "InstanceID": additional_npc_info["instance_id"],
+            "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], additional_npc_info["x"], additional_npc_info["y"])),
+        }
+        sources["npc_mob_info"][npc_type_id][str(npc_id)] = sources["npc_info"][npc_type_id][str(npc_id)]
 
-        for i, (mob_type_id, additional_mob_info) in enumerate(RETROBUTION_ADDITIONAL_MOB_TYPES.items()):
-            if mob_type_id not in sources["mob_type_info"]:
-                continue
+    # add additional mobs
+    for i, (mob_type_id, additional_mob_info) in enumerate(sources["extra_mobs"].items()):
+        if mob_type_id not in sources["mob_type_info"]:
+            continue
 
-            if additional_mob_info["event_name"] not in ["None", sources["active_event"]]:
-                continue
+        if additional_mob_info["event_name"] not in ["None", sources["active_event"]]:
+            continue
 
-            mob_id = MOB_SPECIAL_ID_OFFSET + i
-            sources["mob_info"][mob_type_id][str(mob_id)] = {
-                "ID": str(mob_id),
-                "TypeID": mob_type_id,
-                "TypeName": sources["mob_type_info"][mob_type_id]["Name"],
-                "TypeIcon": sources["mob_type_info"][mob_type_id]["Icon"],
-                "FollowsMobID": "",
-                "HP": sources["mob_type_info"][mob_type_id]["StandardHP"],
-                "X": additional_mob_info["x"],
-                "Y": additional_mob_info["y"],
-                "Z": additional_mob_info["z"],
-                "Angle": additional_mob_info["angle"],
-                "InstanceID": additional_mob_info["instance_id"],
-                "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], additional_mob_info["x"], additional_mob_info["y"])),
-            }
-            sources["npc_mob_info"][mob_type_id][str(mob_id)] = sources["mob_info"][mob_type_id][str(mob_id)]
+        mob_id = MOB_SPECIAL_ID_OFFSET + i
+        sources["mob_info"][mob_type_id][str(mob_id)] = {
+            "ID": str(mob_id),
+            "TypeID": mob_type_id,
+            "TypeName": sources["mob_type_info"][mob_type_id]["Name"],
+            "TypeIcon": sources["mob_type_info"][mob_type_id]["Icon"],
+            "FollowsMobID": "",
+            "HP": sources["mob_type_info"][mob_type_id]["StandardHP"],
+            "X": additional_mob_info["x"],
+            "Y": additional_mob_info["y"],
+            "Z": additional_mob_info["z"],
+            "Angle": additional_mob_info["angle"],
+            "InstanceID": additional_mob_info["instance_id"],
+            "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], additional_mob_info["x"], additional_mob_info["y"])),
+        }
+        sources["npc_mob_info"][mob_type_id][str(mob_id)] = sources["mob_info"][mob_type_id][str(mob_id)]
 
 
 def construct_egg_data(sources: dict[str, dict]) -> None:
@@ -1155,33 +815,27 @@ def construct_egg_data(sources: dict[str, dict]) -> None:
             "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], egg_obj["iX"], egg_obj["iY"])),
         }
 
-    if sources["is_retrobution"]:
-        # add additional eggs
-        for i, (egg_type_id, additional_egg_info) in enumerate(RETROBUTION_ADDITIONAL_EGG_TYPES.items()):
-            if egg_type_id not in sources["egg_type_info"]:
-                continue
+    # add additional eggs
+    for i, (egg_type_id, additional_egg_info) in enumerate(sources["extra_eggs"].items()):
+        if egg_type_id not in sources["egg_type_info"]:
+            continue
 
-            if additional_egg_info["event_name"] not in ["None", sources["active_event"]]:
-                continue
+        if additional_egg_info["event_name"] not in ["None", sources["active_event"]]:
+            continue
 
-            egg_id = EGG_SPECIAL_ID_OFFSET + i
-            sources["egg_info"][egg_type_id][str(egg_id)] = {
-                "ID": str(egg_id),
-                "TypeID": egg_type_id,
-                "TypeName": sources["egg_type_info"][egg_type_id]["Name"],
-                "TypeComment": sources["egg_type_info"][egg_type_id]["Comment"],
-                "TypeExtraComment": sources["egg_type_info"][egg_type_id]["ExtraComment"],
-                "X": additional_egg_info["x"],
-                "Y": additional_egg_info["y"],
-                "Z": additional_egg_info["z"],
-                "InstanceID": additional_egg_info["instance_id"],
-                "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], additional_egg_info["x"], additional_egg_info["y"])),
-            }
-
-        # remove test eggs
-        for egg_type_id in RETROBUTION_REMOVE_EGG_TYPES:
-            del sources["egg_type_info"][egg_type_id]
-            del sources["egg_info"][egg_type_id]
+        egg_id = EGG_SPECIAL_ID_OFFSET + i
+        sources["egg_info"][egg_type_id][str(egg_id)] = {
+            "ID": str(egg_id),
+            "TypeID": egg_type_id,
+            "TypeName": sources["egg_type_info"][egg_type_id]["Name"],
+            "TypeComment": sources["egg_type_info"][egg_type_id]["Comment"],
+            "TypeExtraComment": sources["egg_type_info"][egg_type_id]["ExtraComment"],
+            "X": additional_egg_info["x"],
+            "Y": additional_egg_info["y"],
+            "Z": additional_egg_info["z"],
+            "InstanceID": additional_egg_info["instance_id"],
+            "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], additional_egg_info["x"], additional_egg_info["y"])),
+        }
 
 
 def construct_mission_data(sources: dict[str, dict]) -> None:
@@ -2588,17 +2242,16 @@ def construct_valid_id_sets(sources: dict) -> None:
         | {o["iNPCType"] for obj in sources["mobs"]["groups"].values() for o in obj["aFollowers"]}
     )
 
-    if sources["is_retrobution"]:
-        sources["valid_npc_types"].update({
-            npc_type_id
-            for npc_type_id, additional_npc_info in RETROBUTION_ADDITIONAL_NPC_TYPES.items()
-            if additional_npc_info["event_name"] in ["None", sources["active_event"]]
-        })
-        sources["valid_mob_types"].update({
-            mob_type_id
-            for mob_type_id, additional_mob_info in RETROBUTION_ADDITIONAL_MOB_TYPES.items()
-            if additional_mob_info["event_name"] in ["None", sources["active_event"]]
-        })
+    sources["valid_npc_types"].update({
+        npc_type_id
+        for npc_type_id, additional_npc_info in sources["extra_npcs"].items()
+        if additional_npc_info["event_name"] in ["None", sources["active_event"]]
+    })
+    sources["valid_mob_types"].update({
+        mob_type_id
+        for mob_type_id, additional_mob_info in sources["extra_mobs"].items()
+        if additional_mob_info["event_name"] in ["None", sources["active_event"]]
+    })
 
     sources["valid_npc_mob_types"] = sources["valid_npc_types"] | sources["valid_mob_types"]
 
@@ -2606,12 +2259,11 @@ def construct_valid_id_sets(sources: dict) -> None:
         obj["Id"] for obj in sources["eggs"]["EggTypes"].values()
     }
 
-    if sources["is_retrobution"]:
-        sources["valid_egg_types"].update({
-            egg_type_id
-            for egg_type_id, additional_egg_info in RETROBUTION_ADDITIONAL_EGG_TYPES.items()
-            if additional_egg_info["event_name"] in ["None", sources["active_event"]]
-        })
+    sources["valid_egg_types"].update({
+        egg_type_id
+        for egg_type_id, additional_egg_info in sources["extra_eggs"].items()
+        if additional_egg_info["event_name"] in ["None", sources["active_event"]]
+    })
 
     sources["valid_npcs"] = {
         str_id
@@ -3224,7 +2876,14 @@ def export_graph_source_info(out_info_dir: Path, sources: dict) -> None:
     warnings.resetwarnings()
 
 
-def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path, patch_names: list[str], active_event: str):
+def extract_derived_info(
+    in_dir: Path,
+    out_info_dir: Path,
+    server_data_dir: Path,
+    patch_names: list[str],
+    active_event: str,
+    extras: dict,
+):
     out_info_dir.mkdir(parents=True, exist_ok=True)
 
     sources = {}
@@ -3235,8 +2894,10 @@ def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path
     with open(in_dir / "xdt.json", "r") as f:
         sources["xdt"] = json.load(f)
 
-    sources["is_retrobution"] = "retrobution" in str(in_dir)
     sources["active_event"] = active_event
+    sources["extra_npcs"] = extras.get("extra_npcs", {})
+    sources["extra_mobs"] = extras.get("extra_mobs", {})
+    sources["extra_eggs"] = extras.get("extra_eggs", {})
 
     construct_drop_directory_data(sources, server_data_dir, patch_names)
     construct_area_data(sources)
@@ -3273,8 +2934,8 @@ def extract_derived_info(in_dir: Path, out_info_dir: Path, server_data_dir: Path
     export_graph_source_info(out_info_dir, sources)
 
 
-def main(config_path: Path, output_root: Path, server_data_root: Path):
-    with open(config_path, "r") as f:
+def main(config_root: Path, output_root: Path, server_data_root: Path):
+    with open(config_root / "build-config.yml", "r") as f:
         config = yaml.safe_load(f)["config"]
 
     in_dirs = [p for p in output_root.iterdir() if p.is_dir()]
@@ -3282,18 +2943,26 @@ def main(config_path: Path, output_root: Path, server_data_root: Path):
         build_config = config[in_dir.name]
         server_data_config = build_config["server-data"]
         active_event = build_config.get("active_event", "None")
+
+        extras_path = config_root / f"extras-{in_dir.name}.yml"
+        extras = {}
+        if extras_path.is_file():
+            with open(extras_path, "r") as f:
+                extras = yaml.safe_load(f)
+
         extract_derived_info(
             in_dir,
             in_dir / "info",
             server_data_root / server_data_config["repository"].strip("/"),
             server_data_config.get("patches", []),
             active_event,
+            extras,
         )
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print("Usage: python extract_derived_info.py <config_path> <output_root> <server_data_root>")
+        print("Usage: python extract_derived_info.py <config_root> <output_root> <server_data_root>")
         sys.exit(1)
 
     main(*map(Path, sys.argv[1:]))
