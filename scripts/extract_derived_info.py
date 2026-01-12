@@ -527,7 +527,8 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
             "BuyPrice": item_info_obj.get("ItemPrice", vendor_item_obj["m_iSellCost"]),
         })
 
-    for npc_type_id, npc_data in enumerate(npc_data_list):
+    for npc_data in npc_data_list[1:]:
+        npc_type_id = npc_data["m_iNpcNumber"]
         if npc_type_id == 0:
             continue
 
