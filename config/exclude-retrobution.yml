@@ -7,7 +7,7 @@ mission:
 nano:
   - -1
 npc:
-  - 700
+  - -1
 shiny:
   - 130
   - 131
