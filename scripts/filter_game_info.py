@@ -298,7 +298,7 @@ def operator_exclude(context: dict, all_sources: dict, exclude_config: dict, exc
     source.extend(new_source)
 
 
-def operator_step(context: dict, all_sources: dict, modified_sources: dict, step_name: str, step_config: dict, how_config: dict) -> None:
+def operator_step(context: dict, all_sources: dict, modified_sources: dict, step_name: str, step_config: dict, how_config: dict, extras_ids: set[Any]) -> None:
     if "run_steps" in step_config:
         copied_steps = deepcopy(how_config[step_config["run_steps"]])
 
@@ -309,15 +309,19 @@ def operator_step(context: dict, all_sources: dict, modified_sources: dict, step
         for copied_step_name, copied_step_config in copied_steps.items():
             old_trace = context["trace"]
             context["trace"] = f"{old_trace}.{copied_step_name}"
-            operator_step(context, all_sources, modified_sources, copied_step_name, copied_step_config, how_config)
+            operator_step(context, all_sources, modified_sources, copied_step_name, copied_step_config, how_config, extras_ids)
             context["trace"] = old_trace
     else:
         ids_config = step_config["ids"]
         exclude_config = step_config["exclude"]
+        skip_extras = step_config.get("skip_extras", False)
 
         old_trace = context["trace"]
         context["trace"] = f"{old_trace}.ids"
         exclude_ids = operator_ids(context, all_sources, ids_config)
+        if skip_extras:
+            # do not exclude ids specified in the extras config
+            exclude_ids = exclude_ids - extras_ids
         context[f"{step_name}.ids"] = list(exclude_ids)
 
         context["trace"] = f"{old_trace}.exclude"
@@ -328,6 +332,7 @@ def operator_step(context: dict, all_sources: dict, modified_sources: dict, step
 def run_all_steps(global_context: dict, all_sources: dict, all_config: dict) -> dict[str, Any]:
     exclude_config = all_config["exclude"]
     how_config = all_config["how"]
+    extras_config = all_config["extras"]
 
     type_to_id = {
         "Weapon": 0,
@@ -341,11 +346,21 @@ def run_all_steps(global_context: dict, all_sources: dict, all_config: dict) -> 
         "Chest": 9,
         "Vehicle": 10,
     }
+    exclude_keys_to_extras = {
+        "npc": ["extra_npcs", "extra_mobs"],
+        "shiny": ["extra_eggs"],
+    }
 
     modified_sources = deepcopy(all_sources)
 
     for exclude_key, excluded_ids in exclude_config.items():
         how_key = exclude_key
+        extras_ids = {
+            extras_id
+            for key in exclude_keys_to_extras.get(exclude_key, [])
+            for extras_id, extras_dict in extras_config.get(key, {}).items()
+            if extras_dict["event_name"] in ["None", global_context["active_event"]]
+        }
         context = {
             **global_context,
             USE_EXCLUDED_IDS: excluded_ids,
@@ -362,7 +377,7 @@ def run_all_steps(global_context: dict, all_sources: dict, all_config: dict) -> 
         for step_name, step_config in how_config[how_key].items():
             context["trace"] = f"{exclude_key}.{step_name}"
             try:
-                operator_step(context, all_sources, modified_sources, step_name, step_config, how_config)
+                operator_step(context, all_sources, modified_sources, step_name, step_config, how_config, extras_ids)
             except Exception as e:
                 print(f"\nError in step {context['trace']}: {e}\n")
                 traceback.print_exc()
@@ -371,7 +386,7 @@ def run_all_steps(global_context: dict, all_sources: dict, all_config: dict) -> 
     return modified_sources
 
 
-def filter_game_info(config_how_path: Path, config_exclude_path: Path, in_dir: Path, out_dir: Path):
+def filter_game_info(config_how_path: Path, config_exclude_path: Path, config_extras_path: Path, in_dir: Path, out_dir: Path, active_event: str):
     shutil.copytree(in_dir, out_dir)
 
     out_areas_path = out_dir / "areas.json"
@@ -388,6 +403,11 @@ def filter_game_info(config_how_path: Path, config_exclude_path: Path, in_dir: P
     with open(config_exclude_path, "r") as f:
         all_config["exclude"] = yaml.safe_load(f)
 
+    all_config["extras"] = {}
+    if config_extras_path.is_file():
+        with open(config_extras_path, "r") as f:
+            all_config["extras"] = yaml.safe_load(f)
+
     with open(out_areas_path, "r") as f:
         in_areas = json.load(f)
 
@@ -397,6 +417,7 @@ def filter_game_info(config_how_path: Path, config_exclude_path: Path, in_dir: P
     global_context = {
         "out_dir": str(out_dir),
         "trace": "",
+        "active_event": active_event,
     }
     all_sources = {
         "areas": in_areas,
@@ -414,12 +435,19 @@ def filter_game_info(config_how_path: Path, config_exclude_path: Path, in_dir: P
 def main(config_root: Path, in_root: Path, out_root: Path):
     in_dirs = [p for p in in_root.iterdir() if p.is_dir()]
     out_root.mkdir(parents=True, exist_ok=True)
+
     config_exclude_how_path = config_root / "how-exclude.yml"
+    config_build_path = config_root / "build-config.yml"
+
+    with open(config_build_path, "r") as f:
+        config_build = yaml.safe_load(f)["config"]
 
     for in_dir in tqdm(in_dirs):
         out_dir = out_root / in_dir.name
+        active_event = config_build[in_dir.name].get("active_event", "None")
         config_exclude_path = config_root / f"exclude-{in_dir.name}.yml"
-        filter_game_info(config_exclude_how_path, config_exclude_path, in_dir, out_dir)
+        config_extras_path = config_root / f"extras-{in_dir.name}.yml"
+        filter_game_info(config_exclude_how_path, config_exclude_path, config_extras_path, in_dir, out_dir, active_event)
 
 
 if __name__ == "__main__":

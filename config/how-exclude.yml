@@ -362,6 +362,7 @@ nano:
             - key: m_iHMissionID
 npc:
   step_npc_data:
+    skip_extras: true
     ids:
       from: xdt.m_pNpcTable.m_pNpcData
       filter:
@@ -457,6 +458,7 @@ npc:
       matching: m_iNpcNumber
 shiny:
   step_shiny_data:
+    skip_extras: true
     ids:
       from: xdt.m_pShinyTable.m_pShinyData
       filter:
