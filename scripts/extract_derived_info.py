@@ -766,14 +766,21 @@ def construct_egg_data(sources: dict[str, dict]) -> None:
     egg_type_data_obj = egg_data_dict["EggTypes"]
     egg_data_obj = egg_data_dict["Eggs"]
 
+    egg_data_list = sources["xdt"]["m_pShinyTable"]["m_pShinyData"]
+    egg_type_id_set = {obj["m_iShinyID"] for obj in egg_data_list[1:]}
     egg_string_data_list = sources["xdt"]["m_pShinyTable"]["m_pShinyStringData"]
 
     skill_table_obj = sources["xdt"]["m_pSkillTable"]
     skill_data_list = skill_table_obj["m_pSkillData"]
     skill_string_list = skill_table_obj["m_pSkillStringData"]
     skill_icon_list = skill_table_obj["m_pSkillIconData"]
+
     for egg_type_obj in egg_type_data_obj.values():
         egg_type_id = egg_type_obj["Id"]
+
+        if egg_type_id not in egg_type_id_set:
+            continue
+
         egg_type_string_obj = egg_string_data_list[egg_type_id]
         egg_effect_id = egg_type_obj["EffectId"]
         egg_skill_obj = skill_data_list[egg_effect_id]
