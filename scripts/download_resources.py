@@ -19,9 +19,16 @@ def pull_table_data(server_data_root: Path, server_data_config: dict[str, Any]):
 
     url = f"ssh://git@github.com/{repo_name_path}.git"
     repo_path = clone_path / repo_name_path.name
+    branch_name = server_data_config.get("branch")
 
     if not repo_path.is_dir():
-        subprocess.run(["git", "clone", "-q", url, repo_path])
+        if branch_name:
+            subprocess.run(["git", "clone", "-q", "-b", branch_name, url, repo_path])
+        else:
+            subprocess.run(["git", "clone", "-q", url, repo_path])
+    else:
+        if branch_name:
+            subprocess.run(["git", "checkout", "-q", branch_name], cwd=repo_path)
 
 
 async def get_json_info(client: httpx.AsyncClient, url: str) -> Dict[str, Any]:
