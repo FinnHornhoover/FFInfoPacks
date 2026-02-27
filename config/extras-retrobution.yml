@@ -264,14 +264,6 @@ extra_mobs:
     z: -5375
     angle: 0
     instance_id: 0
-  3419:
-    name: Killer Blood Gnat
-    event_name: Valentines
-    x: 446970
-    y: 302928
-    z: -5605
-    angle: 0
-    instance_id: 0
   3427:
     name: Killer Blood Gnat
     event_name: Valentines
