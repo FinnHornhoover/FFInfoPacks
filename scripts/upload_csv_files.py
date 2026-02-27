@@ -74,6 +74,7 @@ def get_local_csv_map(extracted_root_dir: Path) -> dict[str, dict[str, str]]:
     return csv_map
 
 
+@exponential_backoff
 def get_google_sheets_csv_map(gc: gspread.Client) -> dict[str, dict[str, str]]:
     gcloud_csv_map = defaultdict(dict)
 
