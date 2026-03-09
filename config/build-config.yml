@@ -359,7 +359,7 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "0104-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
@@ -370,7 +370,7 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "0104-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
@@ -381,7 +381,7 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "0104-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
@@ -393,7 +393,7 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "0104-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
@@ -404,7 +404,7 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "0104-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
@@ -415,7 +415,7 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "0104-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
@@ -426,7 +426,7 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "0104-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
@@ -437,7 +437,7 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "0104-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
@@ -449,7 +449,7 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "0104-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - Tutorial.resourceFile
@@ -463,7 +463,7 @@ config:
         - "1013"
         - "0104-fixed"
         - "1013-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
   beta-20110314-fixed:
@@ -475,7 +475,7 @@ config:
         - "1013"
         - "0104-fixed"
         - "1013-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - TrainingGrounds.resourceFile
@@ -488,7 +488,7 @@ config:
         - "1013"
         - "0104-fixed"
         - "1013-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
   beta-20110424-fixed:
@@ -500,7 +500,7 @@ config:
         - "1013"
         - "0104-fixed"
         - "1013-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - TrainingGrounds.resourceFile
@@ -513,7 +513,7 @@ config:
         - "1013"
         - "0104-fixed"
         - "1013-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - TrainingGrounds.resourceFile
@@ -526,7 +526,7 @@ config:
         - "1013"
         - "0104-fixed"
         - "1013-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - TrainingGrounds.resourceFile
@@ -539,7 +539,7 @@ config:
         - "1013"
         - "0104-fixed"
         - "1013-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
       - TrainingGrounds.resourceFile
@@ -552,7 +552,7 @@ config:
         - "1013"
         - "0104-fixed"
         - "1013-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
   beta-20111013-fixed:
@@ -565,6 +565,6 @@ config:
         - "1013"
         - "0104-fixed"
         - "1013-fixed"
-      resources:
+    resources:
       - TableData.resourceFile
       - Icons.resourceFile
