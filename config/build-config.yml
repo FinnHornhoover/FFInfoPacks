@@ -263,3 +263,308 @@ config:
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
+  beta-20100104-fixed:
+    revision: 5 # Increment this when the resources change
+    nickname: original
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100104
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+    resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100119-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100119
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+    resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100207-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100207
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+    resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100307-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100307
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+    resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100322-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100322
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+    resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100413-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100413
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+    resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100502-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100502
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+    resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100524-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100524
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+    resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100604-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100604
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100616-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100604 # beta-20100616 is broken, use beta-20100604 instead
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100711-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100711
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100728-fixed:
+    revision: 5 # Increment this when the resources change
+    nickname: common-future
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100728
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20100909-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20100909
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20101003-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20101003
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20101011-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20101011
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20101028-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20101028
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20101123-fixed:
+    revision: 5 # Increment this when the resources change
+    nickname: latest-future
+    url: https://cdn.dexlabs.systems/ff/big/beta-20101123
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "0104-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - Tutorial.resourceFile
+  beta-20110213-fixed:
+    revision: 5 # Increment this when the resources change
+    nickname: earliest-academy
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110213
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "1013"
+        - "0104-fixed"
+        - "1013-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+  beta-20110314-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110314
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "1013"
+        - "0104-fixed"
+        - "1013-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - TrainingGrounds.resourceFile
+  beta-20110330-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110330
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "1013"
+        - "0104-fixed"
+        - "1013-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+  beta-20110424-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110424
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "1013"
+        - "0104-fixed"
+        - "1013-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - TrainingGrounds.resourceFile
+  beta-20110523-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110523
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "1013"
+        - "0104-fixed"
+        - "1013-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - TrainingGrounds.resourceFile
+  beta-20110725-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110725
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "1013"
+        - "0104-fixed"
+        - "1013-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - TrainingGrounds.resourceFile
+  beta-20110818-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110818
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "1013"
+        - "0104-fixed"
+        - "1013-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+      - TrainingGrounds.resourceFile
+  beta-20110912-fixed:
+    revision: 5 # Increment this when the resources change
+    url: https://cdn.dexlabs.systems/ff/big/beta-20110912
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "1013"
+        - "0104-fixed"
+        - "1013-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
+  beta-20111013-fixed:
+    revision: 5 # Increment this when the resources change
+    nickname: academy
+    url: https://cdn.dexlabs.systems/ff/big/beta-20111013
+    server-data:
+      repository: OpenFusionProject/tabledata
+      patches:
+        - "1013"
+        - "0104-fixed"
+        - "1013-fixed"
+      resources:
+      - TableData.resourceFile
+      - Icons.resourceFile
