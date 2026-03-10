@@ -270,7 +270,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -281,7 +281,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -292,7 +292,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -303,7 +303,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -314,7 +314,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -325,7 +325,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -336,7 +336,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -347,7 +347,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -358,7 +358,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -369,7 +369,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -380,7 +380,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -392,7 +392,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -403,7 +403,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -414,7 +414,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -425,7 +425,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -436,7 +436,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -448,7 +448,7 @@ config:
     server-data:
       repository: OpenFusionProject/tabledata
       patches:
-        - "0104-fixed"
+        - "0104-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -461,8 +461,8 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "1013"
-        - "0104-fixed"
-        - "1013-fixed"
+        - "0104-fixes"
+        - "1013-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -473,8 +473,8 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "1013"
-        - "0104-fixed"
-        - "1013-fixed"
+        - "0104-fixes"
+        - "1013-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -486,8 +486,8 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "1013"
-        - "0104-fixed"
-        - "1013-fixed"
+        - "0104-fixes"
+        - "1013-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -498,8 +498,8 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "1013"
-        - "0104-fixed"
-        - "1013-fixed"
+        - "0104-fixes"
+        - "1013-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -511,8 +511,8 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "1013"
-        - "0104-fixed"
-        - "1013-fixed"
+        - "0104-fixes"
+        - "1013-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -524,8 +524,8 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "1013"
-        - "0104-fixed"
-        - "1013-fixed"
+        - "0104-fixes"
+        - "1013-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -537,8 +537,8 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "1013"
-        - "0104-fixed"
-        - "1013-fixed"
+        - "0104-fixes"
+        - "1013-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -550,8 +550,8 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "1013"
-        - "0104-fixed"
-        - "1013-fixed"
+        - "0104-fixes"
+        - "1013-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
@@ -563,8 +563,8 @@ config:
       repository: OpenFusionProject/tabledata
       patches:
         - "1013"
-        - "0104-fixed"
-        - "1013-fixed"
+        - "0104-fixes"
+        - "1013-fixes"
     resources:
       - TableData.resourceFile
       - Icons.resourceFile
