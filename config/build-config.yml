@@ -1,6 +1,6 @@
 config:
   retrobution:
-    revision: 18 # Increment this when the resources change
+    revision: 19 # Increment this when the resources change
     active_event: None # Possible values: None, Halloween, Knishmas, BirthdayBash, Valentines
     api-url: https://api.ffretrobution.net
     server-data:
