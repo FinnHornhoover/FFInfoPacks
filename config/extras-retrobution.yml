@@ -143,6 +143,14 @@ extra_npcs:
     z: -5605
     angle: 0
     instance_id: 0
+  3218:
+    name: Easter E.G.G.E.R.
+    event_name: Easter
+    x: 430427
+    y: 381340
+    z: -5267
+    angle: 0
+    instance_id: 0
 extra_mobs:
   3369:
     name: The Weeper
