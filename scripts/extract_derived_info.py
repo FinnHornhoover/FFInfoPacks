@@ -2687,11 +2687,11 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             ),
         },
         "vendor_info": {
-            "NPCID": lambda obj: f"{obj['NPCID']} {sources['npc_type_info'][obj['NPCID']]['Name']}",
-            "NPCs": lambda obj: "\n".join(f"{k} {get_location_instance_str(v)}" for k, v in obj["NPCs"].items()),
+            "NPCID": lambda obj: f"{obj['NPCID']} {sources['npc_type_info'].get(obj['NPCID'], {}).get('Name', 'Unknown NPC')}",
+            "NPCs": lambda obj: "\n".join(f"{k} {get_location_instance_str(v)}" for k, v in obj.get("NPCs", {}).items()),
             "Items": lambda obj: "\n".join(
                 f"{short_item_str(v['Item'])} Taros: {v['Price']}"
-                for v in obj["Items"].values()
+                for v in obj.get("Items", {}).values()
             ),
         },
     }
