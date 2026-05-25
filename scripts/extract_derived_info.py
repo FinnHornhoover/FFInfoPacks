@@ -1866,13 +1866,23 @@ def construct_egg_source_data(sources: dict) -> None:
                     })
 
 
-def construct_crate_content_source_data(sources: dict) -> None:
-    sources["crate_content_source_info"] = defaultdict(list)
+def construct_crate_item_source_data(sources: dict) -> None:
+    sources["item_to_crate_info"] = defaultdict(list)
+    sources["crate_to_item_info"] = defaultdict(list)
 
     item_ref_to_str_id = {
         ir_id: "{Type:02d}{sep}{ItemID:04d}".format(**ir, sep=SEP)
         for ir_id, ir in sources["drops_map"]["ItemReferences"].items()
     }
+
+    def sanitize_item_reference_ids(item_reference_ids: list[int]) -> list[int]:
+        return [
+            ir_id
+            for ir_id in item_reference_ids
+            # itemref may be removed but still referenced in itemset, or not present in build
+            if ir_id in item_ref_to_str_id and item_ref_to_str_id[ir_id] in sources["item_info"]
+        ]
+
     real_gender_map = {
         ir_id: sources["item_info"].get(item_str_id, {}).get("GenderID", 0)
         for ir_id, item_str_id in item_ref_to_str_id.items()
@@ -1893,9 +1903,7 @@ def construct_crate_content_source_data(sources: dict) -> None:
                         )
                         else 0
                     )
-                    for ir_id in itemset["ItemReferenceIDs"]
-                    # itemref may be removed but still referenced in itemset
-                    if ir_id in item_ref_to_str_id
+                    for ir_id in sanitize_item_reference_ids(itemset["ItemReferenceIDs"])
                 }
                 for rarity_id in range(1, 5)
             }
@@ -1907,6 +1915,10 @@ def construct_crate_content_source_data(sources: dict) -> None:
     for crate_id, crate_obj in sources["drops_map"]["Crates"].items():
         itemset_obj = sources["drops_map"]["ItemSets"][crate_obj["ItemSetID"]]
         rarity_weights_obj = sources["drops_map"]["RarityWeights"][crate_obj["RarityWeightID"]]
+        item_reference_ids = sanitize_item_reference_ids(itemset_obj["ItemReferenceIDs"])
+
+        crate_str_id = f"09{SEP}{crate_id:04d}"
+        crate_obj = sources["item_info"][crate_str_id]
 
         itemset_view = itemset_views[itemset_obj["ItemSetID"]]
         boy_rarity_weights = itemset_view[GENDERS.index("Male")]
@@ -1930,27 +1942,32 @@ def construct_crate_content_source_data(sources: dict) -> None:
             sum_boy_rarity_ir_weights = max(1, sum(boy_rarity_ir_weights.values()))
             sum_girl_rarity_ir_weights = max(1, sum(girl_rarity_ir_weights.values()))
 
-            for ir_id in itemset_obj["ItemReferenceIDs"]:
-                # itemref may be removed but still referenced in itemset
-                if ir_id not in item_ref_to_str_id:
-                    continue
-
+            for ir_id in item_reference_ids:
                 boy_probabilities[ir_id] += rarity_probability * Fraction(boy_rarity_ir_weights[ir_id], sum_boy_rarity_ir_weights)
                 girl_probabilities[ir_id] += rarity_probability * Fraction(girl_rarity_ir_weights[ir_id], sum_girl_rarity_ir_weights)
 
-        for ir_id in itemset_obj["ItemReferenceIDs"]:
-            # itemref may be removed but still referenced in itemset
-            if ir_id not in item_ref_to_str_id:
-                continue
-
+        for ir_id in item_reference_ids:
             item_str_id = item_ref_to_str_id[ir_id]
+            item_obj = sources["item_info"][item_str_id]
+            boy_odds = str(boy_probabilities[ir_id])
+            girl_odds = str(girl_probabilities[ir_id])
+            boy_probability = float(boy_probabilities[ir_id])
+            girl_probability = float(girl_probabilities[ir_id])
 
-            sources["crate_content_source_info"][item_str_id].append({
-                "ContainingCrateID": crate_id,
-                "BoyOdds": str(boy_probabilities[ir_id]),
-                "GirlOdds": str(girl_probabilities[ir_id]),
-                "BoyProbability": float(boy_probabilities[ir_id]),
-                "GirlProbability": float(girl_probabilities[ir_id]),
+            sources["item_to_crate_info"][item_str_id].append({
+                "ContainingCrate": crate_obj,
+                "BoyOdds": boy_odds,
+                "GirlOdds": girl_odds,
+                "BoyProbability": boy_probability,
+                "GirlProbability": girl_probability,
+            })
+
+            sources["crate_to_item_info"][crate_id].append({
+                "Item": item_obj,
+                "BoyOdds": boy_odds,
+                "GirlOdds": girl_odds,
+                "BoyProbability": boy_probability,
+                "GirlProbability": girl_probability,
             })
 
 
@@ -2055,7 +2072,7 @@ def construct_item_source_data(sources: dict) -> None:
 
         # crate content source
         def source_recurse(str_id: str) -> list[dict]:
-            crate_content_objs = sources["crate_content_source_info"].get(str_id, [])
+            crate_content_objs = sources["item_to_crate_info"].get(str_id, [])
 
             if not crate_content_objs:
                 type_id, item_id = map(int, str_id.split(SEP))
@@ -2064,7 +2081,7 @@ def construct_item_source_data(sources: dict) -> None:
             crate_sources = []
 
             for crate_content_obj in crate_content_objs:
-                containing_crate_id = crate_content_obj["ContainingCrateID"]
+                containing_crate_id = crate_content_obj["ContainingCrate"]["ItemID"]
                 containing_crate_str_id = f"09{SEP}{containing_crate_id:04d}"
                 boy_probability = Fraction(crate_content_obj["BoyOdds"])
                 girl_probability = Fraction(crate_content_obj["GirlOdds"])
@@ -2434,6 +2451,8 @@ def export_json_source_info(out_info_dir: Path, sources: dict) -> None:
         "combination_info",
         "item_source_info",
         "source_item_info",
+        "crate_to_item_info",
+        "item_to_crate_info",
     ]
 
     for key in source_keys:
@@ -2713,6 +2732,8 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                     })
 
     source_fields = {
+        "BoyProbability": "Odds (Boy)",
+        "GirlProbability": "Odds (Girl)",
         "SourceBoyProbability": "Odds (Boy)",
         "SourceGirlProbability": "Odds (Girl)",
         "SourcePrice": "Price",
@@ -2720,6 +2741,8 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         "SourceMinScore": "Min. Score",
     }
     source_formatters = {
+        "BoyProbability": lambda v: f"1 / {math.ceil(1 / v)}" if v > 0 else "Impossible",
+        "GirlProbability": lambda v: f"1 / {math.ceil(1 / v)}" if v > 0 else "Impossible",
         "SourceBoyProbability": lambda v: f"1 / {math.ceil(1 / v)}" if v > 0 else "Impossible",
         "SourceGirlProbability": lambda v: f"1 / {math.ceil(1 / v)}" if v > 0 else "Impossible",
     }
@@ -2761,6 +2784,36 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         ),
     }
 
+    # export crate to item table
+    with open(out_info_dir / "crate_to_item_info_table.csv", "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["ID", "Name", "Description", "Level", "Items", "Items Extra Info"])
+        writer.writeheader()
+
+        for crate_id, crate_items in sources["crate_to_item_info"].items():
+            item_fields = sorted([
+                (
+                    -max(v.get("BoyProbability", 0), v.get("GirlProbability", 0)),
+                    v["Item"]["ContentLevel"],
+                    v["Item"]["RarityID"],
+                    v["Item"]["TypeID"],
+                    v["Item"]["ItemID"],
+                    short_item_str(v["Item"]),
+                    " ".join(f"{f_v}: {source_formatters.get(f_k, lambda v: v)(v[f_k])}" for f_k, f_v in source_fields.items() if f_k in v)
+                )
+                for v in crate_items
+            ])
+            crate_str_id = f"09{SEP}{crate_id:04d}"
+            crate_obj = sources["item_info"][crate_str_id]
+
+            writer.writerow({
+                "ID": crate_obj["ItemID"],
+                "Name": crate_obj["Name"],
+                "Description": crate_obj["Description"],
+                "Level": crate_obj["ContentLevel"],
+                "Items": "\n".join(f[-2] for f in item_fields),
+                "Items Extra Info": "\n".join(f[-1] for f in item_fields),
+            })
+
     # export source to item table
     with open(out_info_dir / "source_item_info_table.csv", "w") as f:
         writer = csv.DictWriter(f, fieldnames=["Source Type", "Source", "Source Extra Info", "Items", "Items Extra Info"])
@@ -2795,6 +2848,34 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                     "Items": "\n".join(f[-2] for f in item_fields[source_id]),
                     "Items Extra Info": "\n".join(f[-1] for f in item_fields[source_id]),
                 })
+
+    # export item to crate table
+    with open(out_info_dir / "item_to_crate_info_table.csv", "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["Type", "Weapon Type", "ID", "Name", "Level", "Rarity", "CRATEs", "CRATEs Extra Info"])
+        writer.writeheader()
+
+        for item_str_id, item_crates in sources["item_to_crate_info"].items():
+            crate_fields = sorted([
+                (
+                    -max(v.get("BoyProbability", 0), v.get("GirlProbability", 0)),
+                    v["ContainingCrate"]["ItemID"],
+                    short_item_str(v["ContainingCrate"]),
+                    " ".join(f"{f_v}: {source_formatters.get(f_k, lambda v: v)(v[f_k])}" for f_k, f_v in source_fields.items() if f_k in v)
+                )
+                for v in item_crates
+            ])
+            item_obj = sources["item_info"][item_str_id]
+
+            writer.writerow({
+                "Type": item_obj["Type"],
+                "Weapon Type": item_obj["WeaponType"],
+                "ID": item_obj["ItemID"],
+                "Name": item_obj["Name"],
+                "Level": item_obj["ContentLevel"],
+                "Rarity": item_obj["Rarity"],
+                "CRATEs": "\n".join(f[-2] for f in crate_fields),
+                "CRATEs Extra Info": "\n".join(f[-1] for f in crate_fields),
+            })
 
     # export item to source table
     with open(out_info_dir / "item_source_info_table.csv", "w") as f:
@@ -2929,7 +3010,7 @@ def extract_derived_info(
     construct_mob_event_source_data(sources)
     construct_mission_reward_source_data(sources)
     construct_egg_source_data(sources)
-    construct_crate_content_source_data(sources)
+    construct_crate_item_source_data(sources)
     construct_crate_source_data(sources)
     construct_item_source_data(sources)
     construct_source_item_data(sources)
