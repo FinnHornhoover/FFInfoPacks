@@ -550,6 +550,11 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
         support_skill_obj = skill_data_list[npc_data["m_iSupportSkill"]]
         passive_skill_obj = skill_data_list[npc_data["m_iPassiveBuff"]]
 
+        mobs_map = sources["drops_map"]["Mobs"]
+        mob_drops_map = sources["drops_map"]["MobDrops"]
+        misc_drop_types_map = sources["drops_map"]["MiscDropTypes"]
+        misc_drop_chances_map = sources["drops_map"]["MiscDropChances"]
+
         npc_info_dict = {
             "ID": npc_type_id,
             "Name": npc_name,
@@ -562,6 +567,46 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
         }
 
         if npc_data["m_iNpcType"] == 0:
+            misc_drops = {
+                "Taros": 0,
+                "TaroDropOdds": "0",
+                "TaroDropProbability": 0.0,
+                "FM": 0,
+                "FMDropOdds": "0",
+                "FMDropProbability": 0.0,
+                "Potions": 0,
+                "PotionDropOdds": "0",
+                "PotionDropProbability": 0.0,
+                "Boosts": 0,
+                "BoostDropOdds": "0",
+                "BoostDropProbability": 0.0,
+            }
+            mob_obj = mobs_map.get(npc_type_id)
+            mob_drop_obj = mob_drops_map.get(mob_obj["MobDropID"]) if mob_obj else None
+            misc_drop_type_obj = misc_drop_types_map.get(mob_drop_obj["MiscDropTypeID"]) if mob_drop_obj else None
+            misc_drop_chance_obj = misc_drop_chances_map.get(mob_drop_obj["MiscDropChanceID"]) if mob_drop_obj else None
+
+            if misc_drop_type_obj is not None and misc_drop_chance_obj is not None:
+                taro_drop_odds = Fraction(misc_drop_chance_obj["TaroDropChance"], misc_drop_chance_obj["TaroDropChanceTotal"])
+                potion_drop_odds = Fraction(misc_drop_chance_obj["PotionDropChance"], misc_drop_chance_obj["PotionDropChanceTotal"])
+                boost_drop_odds = Fraction(misc_drop_chance_obj["BoostDropChance"], misc_drop_chance_obj["BoostDropChanceTotal"])
+                fm_drop_odds = Fraction(misc_drop_chance_obj["FMDropChance"], misc_drop_chance_obj["FMDropChanceTotal"])
+
+                misc_drops = {
+                    "Taros": misc_drop_type_obj["TaroAmount"],
+                    "TaroDropOdds": str(taro_drop_odds),
+                    "TaroDropProbability": float(taro_drop_odds),
+                    "Potions": misc_drop_type_obj["PotionAmount"],
+                    "PotionDropOdds": str(potion_drop_odds),
+                    "PotionDropProbability": float(potion_drop_odds),
+                    "Boosts": misc_drop_type_obj["BoostAmount"],
+                    "BoostDropOdds": str(boost_drop_odds),
+                    "BoostDropProbability": float(boost_drop_odds),
+                    "FM": misc_drop_type_obj["FMAmount"],
+                    "FMDropOdds": str(fm_drop_odds),
+                    "FMDropProbability": float(fm_drop_odds),
+                }
+
             sources["mob_type_info"][npc_type_id] = {
                 **npc_info_dict,
                 "Level": npc_data["m_iNpcLevel"],
@@ -607,6 +652,7 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
                 "PassiveBuffID": npc_data["m_iPassiveBuff"],
                 "PassiveBuff": skill_string_list[passive_skill_obj["m_iSkillNumber"]]["m_strName"],
                 "PassiveBuffIcon": f"icons/skillicon_{skill_icon_list[passive_skill_obj['m_iIcon']]['m_iIconNumber']:02d}.png",
+                **misc_drops,
             }
             sources["npc_mob_type_info"][npc_type_id] = sources["mob_type_info"][npc_type_id]
         else:
@@ -2577,6 +2623,10 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "Level": "Level",
             "ColorType": "Color Type",
             "InGame": "In Game",
+            "Taros": "Taros",
+            "FM": "FM",
+            "Boosts": "Boosts",
+            "Potions": "Potions",
             "StandardHP": "HP",
             "Accuracy": "Accuracy",
             "Protection": "Protection",
