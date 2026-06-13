@@ -1207,6 +1207,22 @@ def construct_instance_data(sources: dict[str, dict]) -> None:
         use_item_id = warp_data_obj["m_iLimit_UseItemID"]
         item_str_id = f"{use_item_type:02d}{SEP}{use_item_id:04d}"
 
+        if warp_npc_id not in sources["npc_type_info"]:
+            continue
+
+        warp_npc_type = sources["npc_type_info"][warp_npc_id]
+        warp_npc_info = sources["npc_info"].get(warp_npc_id, {})
+
+        # fix for incorrectly set up warp NPCs in Retrobution
+        # vendors + sapphire banker have invisible warps
+        if (
+            entry_instance_id == WORLD_INSTANCE_ID
+            and (warp_npc_type["Category"] == "Vendor" or "Bank" in warp_npc_type["Name"])
+            and len(warp_npc_info) > 0
+            and all(npc["InstanceID"] == WORLD_INSTANCE_ID for npc in warp_npc_info.values())
+        ):
+            continue
+
         sources["instance_warp_info"][warp_id] = {
             "ID": warp_id,
             "EntryInstanceID": entry_instance_id,
@@ -1217,8 +1233,8 @@ def construct_instance_data(sources: dict[str, dict]) -> None:
             "ToZ": warp_data_obj["m_iToZ"],
             "ToAreaZone": to_area_tag(locate_coordinates(sources["area_info"], warp_data_obj["m_iToX"], warp_data_obj["m_iToY"])),
             "NPCID": warp_npc_id,
-            "NPCType": sources["npc_type_info"][warp_npc_id] if warp_npc_id > 0 else None,
-            "NPCs": sources["npc_info"][warp_npc_id] if warp_npc_id > 0 else None,
+            "NPCType": warp_npc_type,
+            "NPCs": warp_npc_info,
             "RequiredTaskID": warp_task_id,
             "RequiredTaskObjective": mission_string_list[warp_task_obj["m_iHCurrentObjective"]]["m_pstrNameString"],
             "RequiredMissionID": warp_task_obj["m_iHMissionID"],
@@ -1335,7 +1351,7 @@ def construct_vendor_data(sources: dict) -> None:
             "NPCID": vendor_id,
             # too much redundant information here, just NPCs are enough
             # "NPCType": sources["npc_type_info"][vendor_id] if vendor_id > 0 else None,
-            "NPCs": sources["npc_info"][vendor_id] if vendor_id > 0 else None,
+            "NPCs": sources["npc_info"].get(vendor_id, {}),
             "Items": {},
         }
 
@@ -1599,8 +1615,8 @@ def construct_transportation_data(sources: dict) -> None:
     for npc_id, npc_transportation_list in npc_groupped_transportation_dict.items():
         sources["transportation_info"][npc_id] = {
             "NPCID": npc_id,
-            "NPCType": sources["npc_mob_type_info"][npc_id] if npc_id > 0 else None,
-            "NPCs": sources["npc_mob_info"][npc_id] if npc_id > 0 else None,
+            "NPCType": sources["npc_mob_type_info"][npc_id] if npc_id in sources["npc_mob_type_info"] else None,
+            "NPCs": sources["npc_mob_info"].get(npc_id, {}),
             "MoveTypeID": npc_transportation_list[0]["MoveTypeID"],
             "MoveType": npc_transportation_list[0]["MoveType"],
             "StartLocation": npc_transportation_list[0]["StartLocation"],
@@ -1688,7 +1704,7 @@ def construct_vendor_source_data(sources: dict) -> None:
 
         vendor_npc_type = sources["npc_type_info"][vendor_id]
 
-        for instance_id, area_dict in sources["npc_instance_region_grouped_info"][vendor_id].items():
+        for instance_id, area_dict in sources["npc_instance_region_grouped_info"].get(vendor_id, {}).items():
             for area_tag, npc_list in area_dict.items():
                 for npc_obj in npc_list:
                     for item_str_id, vendor_item_obj in vendor_obj["Items"].items():
@@ -1716,7 +1732,7 @@ def construct_racing_source_data(sources: dict) -> None:
             for warp_obj in ep_obj["EntryWarps"].values():
                 warp_npc_id = warp_obj["NPCID"]
                 warp_npc_type = sources["npc_type_info"][warp_npc_id]
-                instance_region_groups = sources["npc_instance_region_grouped_info"][warp_npc_id]
+                instance_region_groups = sources["npc_instance_region_grouped_info"].get(warp_npc_id, {})
 
                 if WORLD_INSTANCE_ID not in instance_region_groups:
                     continue
@@ -1816,7 +1832,7 @@ def construct_mob_event_source_data(sources: dict) -> None:
 
                 mob_type = sources["mob_type_info"][mob_event_id]
 
-                for instance_id, area_dict in sources["mob_instance_region_grouped_info"][mob_event_id].items():
+                for instance_id, area_dict in sources["mob_instance_region_grouped_info"].get(mob_event_id, {}).items():
                     for area_tag, mob_list in area_dict.items():
                         sources["mob_source_info"][crate_id].append({
                             "MobTypeID": mob_event_id,
@@ -1865,7 +1881,7 @@ def construct_mission_reward_source_data(sources: dict) -> None:
 
         mission_start_npc_type = sources["npc_mob_type_info"][mission_start_npc_id]
 
-        for instance_id, area_dict in sources["npc_instance_region_grouped_info"][mission_start_npc_id].items():
+        for instance_id, area_dict in sources["npc_instance_region_grouped_info"].get(mission_start_npc_id, {}).items():
             for area_tag, npc_list in area_dict.items():
                 for npc_obj in npc_list:
                     for reward_item in mission_obj["Rewards"]["Items"]:
@@ -1895,7 +1911,7 @@ def construct_egg_source_data(sources: dict) -> None:
     sources["egg_source_info"] = defaultdict(list)
 
     for egg_type_id, egg_type in sources["egg_type_info"].items():
-        for instance_id, area_dict in sources["egg_instance_region_grouped_info"][egg_type_id].items():
+        for instance_id, area_dict in sources["egg_instance_region_grouped_info"].get(egg_type_id, {}).items():
             for area_tag, egg_list in area_dict.items():
                 for egg_obj in egg_list:
                     sources["egg_source_info"][egg_type["CrateID"]].append({
@@ -2285,7 +2301,7 @@ def fill_area_info(sources: dict) -> None:
 
     # add instance warp info
     for instance_warp_obj in sources["instance_warp_info"].values():
-        for region_npc_dict in sources["npc_instance_region_grouped_info"][instance_warp_obj["NPCID"]].values():
+        for region_npc_dict in sources["npc_instance_region_grouped_info"].get(instance_warp_obj["NPCID"], {}).values():
             for npc_obj_list in region_npc_dict.values():
                 for npc_obj in npc_obj_list:
                     area_obj = locate_coordinates(sources["area_info"], npc_obj["X"], npc_obj["Y"])
@@ -2801,7 +2817,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             ["Lv{Level} {ColorType}".format(**sources["mob_type_info"][src_id])] +
             sorted({
                 get_location_instance_str({"InstanceID": instance_id, "AreaZone": area_tag}, include_coordinate=False)
-                for instance_id, area_dict in sources["mob_instance_region_grouped_info"][src_id].items()
+                for instance_id, area_dict in sources["mob_instance_region_grouped_info"].get(src_id, {}).items()
                 for area_tag in area_dict
             })
         ),
@@ -2826,7 +2842,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         "Egg": lambda src_id, include_coordinate: "\n".join(
             sorted({
                 get_location_instance_str(v, include_coordinate)
-                for v in sources["egg_info"][src_id].values()
+                for v in sources["egg_info"].get(src_id, {}).values()
             })
         ),
         "Racing": lambda src_id, include_coordinate: "{AreaZone}\nPods: {TotalPods} Time Limit: {TimeLimit}".format(
