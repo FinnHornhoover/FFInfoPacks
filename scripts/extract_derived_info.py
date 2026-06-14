@@ -387,41 +387,56 @@ def construct_player_info_data(sources: dict) -> None:
     player_base_data_obj = player_growth_table_obj["m_pAvatarData"][1]
     player_growth_data_obj_list = player_growth_table_obj["m_pAvatarGrowData"][1:]
 
+    sources["player_info"][0] = {
+        "Level": 0,
+        "HP": 0,
+        "Defense": player_base_data_obj["m_iProtection"],
+        "Dodge": player_base_data_obj["m_iDodge"],
+        "RunSpeed": player_base_data_obj["m_iRunSpeed"],
+        "SwimSpeed": player_base_data_obj["m_iSwimSpeed"],
+        "JumpHeight": player_base_data_obj["m_iJumpHeight"],
+        "JumpDistance": player_base_data_obj["m_iJumpDistance"],
+        "ViewAngle": player_base_data_obj["m_iViewAngle"],
+        "ViewDistance": player_base_data_obj["m_iViewDistance"],
+        "PunchRange": player_base_data_obj["m_iAtkRange"],
+        "PunchAngle": player_base_data_obj["m_iAtkAngle"],
+        "PunchNumberOfTargets": player_base_data_obj["m_iTargetNumber"],
+        "PunchInitialTime": player_base_data_obj["m_iInitialTime"],
+        "PunchDeliverTime": player_base_data_obj["m_iDeliverTime"],
+        "PunchDelayTime": player_base_data_obj["m_iDelayTime"],
+        "PunchDurationTime": player_base_data_obj["m_iDurationTime"],
+        "PunchRateOfFire": 1 / player_base_data_obj["m_iDelayTime"] if player_base_data_obj["m_iDelayTime"] > 0 else 0.0,
+        "PunchDamage": player_base_data_obj["m_iPower"],
+        "PunchAccuracy": player_base_data_obj["m_iAccuracy"],
+        "NextLevelFMCost": 0,
+        "NanoPowerChangeFMCost": 0,
+        "FMLimit": 0,
+        "NextNanoID": 1,
+        # filled later
+        "NextNano": None,
+        "NanoMissionTaskID": 2250, # A Fusion Matter first task
+        # filled later
+        "NanoMissionTask": None,
+        "NanoMissionID": 0,
+        "NanoMission": None,
+    }
+
     for player_growth_obj in player_growth_data_obj_list:
         player_level = player_growth_obj["m_iLevel"]
 
         sources["player_info"][player_level] = {
+            **sources["player_info"][0],
             "Level": player_level,
             "HP": player_growth_obj["m_iMaxHP"],
             "Defense": player_growth_obj["m_iProtection"],
             "Dodge": player_growth_obj["m_iDodge"],
-            "RunSpeed": player_base_data_obj["m_iRunSpeed"],
-            "SwimSpeed": player_base_data_obj["m_iSwimSpeed"],
-            "JumpHeight": player_base_data_obj["m_iJumpHeight"],
-            "JumpDistance": player_base_data_obj["m_iJumpDistance"],
-            "ViewAngle": player_base_data_obj["m_iViewAngle"],
-            "ViewDistance": player_base_data_obj["m_iViewDistance"],
-            "PunchRange": player_base_data_obj["m_iAtkRange"],
-            "PunchAngle": player_base_data_obj["m_iAtkAngle"],
-            "PunchNumberOfTargets": player_base_data_obj["m_iTargetNumber"],
-            "PunchInitialTime": player_base_data_obj["m_iInitalTime"],
-            "PunchDeliverTime": player_base_data_obj["m_iDeliverTime"],
-            "PunchDelayTime": player_base_data_obj["m_iDelayTime"],
-            "PunchDurationTime": player_base_data_obj["m_iDurationTime"],
-            "PunchRateOfFire": 1 / player_base_data_obj["m_iDelayTime"] if player_base_data_obj["m_iDelayTime"] > 0 else 0.0,
             "PunchDamage": player_growth_obj["m_iPower"],
             "PunchAccuracy": player_growth_obj["m_iAccuracy"],
             "NextLevelFMCost": player_growth_obj["m_iReqBlob_NanoCreate"],
             "NanoPowerChangeFMCost": player_growth_obj["m_iReqBlob_NanoTune"],
             "FMLimit": player_growth_obj["m_iFMLimit"] if not sources["is_retrobution"] else player_growth_obj["m_iReqBlob_NanoCreate"] * 2,
-            "NanoID": player_growth_obj["m_iNanoID"],
-            # filled later
-            "Nano": "None",
+            "NextNanoID": player_growth_obj["m_iNanoID"] + 1,
             "NanoMissionTaskID": player_growth_obj["m_iNanoQuestTaskID"],
-            # filled later
-            "NanoMissionTask": "None",
-            "NanoMissionID": -1,
-            "NanoMission": "None",
         }
 
 
@@ -1388,8 +1403,8 @@ def construct_nano_data(sources: dict) -> None:
 
         # fill player data
         for player_info_obj in sources["player_info"].values():
-            if player_info_obj["NanoID"] == nano_id:
-                player_info_obj["Nano"] = sources["nano_info"][nano_id]
+            if player_info_obj["NextNanoID"] == nano_id:
+                player_info_obj["NextNano"] = sources["nano_info"][nano_id]
                 break
 
 
@@ -2610,7 +2625,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "NextLevelFMCost": "Next Level FM Cost",
             "NanoPowerChangeFMCost": "Nano Power Change FM Cost",
             "FMLimit": "FM Limit",
-            "Nano": "Nano",
+            "NextNano": "Next Nano",
             "NanoMission": "Nano Mission",
         },
         "item_info": {
@@ -2790,10 +2805,12 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
     }
     converters = {
         "player_info": {
-            "Nano": lambda obj: f"{obj['Nano']['ID']} {obj['Nano']['Name']}",
+            "NextNano": lambda obj: f"{obj['NextNanoID']} {obj['NextNano']['Name']}" if obj["NextNano"] else "",
             "NanoMission": lambda obj: (
-                f"{obj['NanoMission']['ID']} {obj['NanoMission']['Name']}\n"
-                f"Task {obj['NanoMissionTask']['ID']} {obj['NanoMissionTask']['CurrentObjective']}"
+                f"{obj['NanoMissionID']} {obj['NanoMission']['Name']}\n"
+                f"Task {obj['NanoMissionTaskID']} {obj['NanoMissionTask']['CurrentObjective']}"
+                if obj["NanoMissionTask"]
+                else ""
             ),
         },
         "code_item_info": {
