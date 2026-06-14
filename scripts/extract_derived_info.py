@@ -380,6 +380,51 @@ def construct_area_data(sources: dict) -> None:
         })
 
 
+def construct_player_info_data(sources: dict) -> None:
+    sources["player_info"] = {}
+
+    player_growth_table_obj = sources["xdt"]["m_pAvatarTable"]
+    player_base_data_obj = player_growth_table_obj["m_pAvatarData"][1]
+    player_growth_data_obj_list = player_growth_table_obj["m_pAvatarGrowData"][1:]
+
+    for player_growth_obj in player_growth_data_obj_list:
+        player_level = player_growth_obj["m_iLevel"]
+
+        sources["player_info"][player_level] = {
+            "Level": player_level,
+            "HP": player_growth_obj["m_iMaxHP"],
+            "Defense": player_growth_obj["m_iProtection"],
+            "Dodge": player_growth_obj["m_iDodge"],
+            "RunSpeed": player_base_data_obj["m_iRunSpeed"],
+            "SwimSpeed": player_base_data_obj["m_iSwimSpeed"],
+            "JumpHeight": player_base_data_obj["m_iJumpHeight"],
+            "JumpDistance": player_base_data_obj["m_iJumpDistance"],
+            "ViewAngle": player_base_data_obj["m_iViewAngle"],
+            "ViewDistance": player_base_data_obj["m_iViewDistance"],
+            "PunchRange": player_base_data_obj["m_iAtkRange"],
+            "PunchAngle": player_base_data_obj["m_iAtkAngle"],
+            "PunchNumberOfTargets": player_base_data_obj["m_iTargetNumber"],
+            "PunchInitialTime": player_base_data_obj["m_iInitalTime"],
+            "PunchDeliverTime": player_base_data_obj["m_iDeliverTime"],
+            "PunchDelayTime": player_base_data_obj["m_iDelayTime"],
+            "PunchDurationTime": player_base_data_obj["m_iDurationTime"],
+            "PunchRateOfFire": 1 / player_base_data_obj["m_iDelayTime"] if player_base_data_obj["m_iDelayTime"] > 0 else 0.0,
+            "PunchDamage": player_growth_obj["m_iPower"],
+            "PunchAccuracy": player_growth_obj["m_iAccuracy"],
+            "NextLevelFMCost": player_growth_obj["m_iReqBlob_NanoCreate"],
+            "NanoPowerChangeFMCost": player_growth_obj["m_iReqBlob_NanoTune"],
+            "FMLimit": player_growth_obj["m_iFMLimit"] if not sources["is_retrobution"] else player_growth_obj["m_iReqBlob_NanoCreate"] * 2,
+            "NanoID": player_growth_obj["m_iNanoID"],
+            # filled later
+            "Nano": "None",
+            "NanoMissionTaskID": player_growth_obj["m_iNanoQuestTaskID"],
+            # filled later
+            "NanoMissionTask": "None",
+            "NanoMissionID": -1,
+            "NanoMission": "None",
+        }
+
+
 def construct_item_info_data(sources: dict[str, dict]) -> None:
     sources["item_info"] = {}
 
@@ -1182,6 +1227,14 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 },
             }
 
+            # fill level up mission data
+            for player_info_obj in sources["player_info"].values():
+                if player_info_obj["NanoMissionTaskID"] == task_id:
+                    player_info_obj["NanoMissionTask"] = mission_info_obj["Tasks"][task_id]
+                    player_info_obj["NanoMissionID"] = mission_info_obj["ID"]
+                    player_info_obj["NanoMission"] = mission_info_obj
+                    break
+
 
 def construct_instance_data(sources: dict[str, dict]) -> None:
     sources["instance_info"] = {}
@@ -1332,6 +1385,12 @@ def construct_nano_data(sources: dict) -> None:
             },
             "NanoIcon": f"icons/nanoicon_{nano_icon_list[nano_data_obj['m_iIcon1']]['m_iIconNumber']:02d}.png",
         }
+
+        # fill player data
+        for player_info_obj in sources["player_info"].values():
+            if player_info_obj["NanoID"] == nano_id:
+                player_info_obj["Nano"] = sources["nano_info"][nano_id]
+                break
 
 
 def construct_vendor_data(sources: dict) -> None:
@@ -2495,6 +2554,7 @@ def mark_valid_sources(sources: dict) -> None:
 
 def export_json_source_info(out_info_dir: Path, sources: dict) -> None:
     source_keys = [
+        "player_info",
         "item_info",
         "npc_type_info",
         "mob_type_info",
@@ -2538,6 +2598,21 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         return get_instance_area_name(v)
 
     csv_fields = {
+        "player_info": {
+            "Level": "Level",
+            "HP": "HP",
+            "PunchDamage": "Damage",
+            "Defense": "Defense",
+            "RunSpeed": "Run Speed",
+            "SwimSpeed": "Swim Speed",
+            "JumpHeight": "Jump Height",
+            "JumpDistance": "Jump Distance",
+            "NextLevelFMCost": "Next Level FM Cost",
+            "NanoPowerChangeFMCost": "Nano Power Change FM Cost",
+            "FMLimit": "FM Limit",
+            "Nano": "Nano",
+            "NanoMission": "Nano Mission",
+        },
         "item_info": {
             "Type": "Type",
             "WeaponType": "Weapon Type",
@@ -2714,6 +2789,13 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         },
     }
     converters = {
+        "player_info": {
+            "Nano": lambda obj: f"{obj['Nano']['ID']} {obj['Nano']['Name']}",
+            "NanoMission": lambda obj: (
+                f"{obj['NanoMission']['ID']} {obj['NanoMission']['Name']}\n"
+                f"Task {obj['NanoMissionTask']['ID']} {obj['NanoMissionTask']['CurrentObjective']}"
+            ),
+        },
         "code_item_info": {
             "Items": lambda obj: "\n".join(map(short_item_str, obj["Items"].values())),
         },
@@ -3049,6 +3131,7 @@ def extract_derived_info(
     with open(in_dir / "xdt.json", "r") as f:
         sources["xdt"] = json.load(f)
 
+    sources["is_retrobution"] = "retrobution" in str(in_dir)
     sources["active_event"] = active_event
     sources["extra_npcs"] = extras.get("extra_npcs", {})
     sources["extra_mobs"] = extras.get("extra_mobs", {})
@@ -3056,6 +3139,7 @@ def extract_derived_info(
 
     construct_drop_directory_data(sources, server_data_dir, patch_names)
     construct_area_data(sources)
+    construct_player_info_data(sources)
     construct_item_info_data(sources)
     construct_npc_mob_info_data(sources)
     construct_egg_data(sources)
