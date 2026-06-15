@@ -359,8 +359,7 @@ def get_task_chains(sources: dict, mission_info_obj: dict, task_list: list[dict]
 
     if first_task < 0:
         # fallback to the first task if not found
-        print(f"Warning: First task is not set for mission: {mission_info_obj['ID']} {mission_info_obj['Name']}. Falling back to the first task.")
-        first_task = next((task["m_iHTaskID"] for task in task_list if task["m_iHTaskID"] in shortest_paths_reverse_dict), task_list[0]["m_iHTaskID"])
+        first_task = next((task_id for task_id in task_id_set if task_id in shortest_paths_reverse_dict), task_list[0]["m_iHTaskID"])
 
     success_chain_path = list(reversed(shortest_paths_reverse_dict[first_task][0]))
     success_chain_nodes = set(success_chain_path)
