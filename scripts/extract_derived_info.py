@@ -321,6 +321,76 @@ def to_area_tag(area_obj: dict) -> str:
     return "{AreaName} - {ZoneName}".format(**area_obj)
 
 
+def get_task_chains(sources: dict, mission_info_obj: dict, task_list: list[dict]) -> tuple[dict[int, str], list[dict]]:
+    task_id_set = {task_obj["m_iHTaskID"] for task_obj in task_list}
+    nano_mission_task_id_set = {sources["player_info"][level]["NanoMissionTaskID"] for level in sources["player_info"]}
+
+    reverse_success_subgraph = nx.DiGraph()
+
+    # discovery phase
+    reverse_success_subgraph.add_nodes_from(task_id_set)
+    first_task = -1
+    last_task = -1
+
+    for task_obj in task_list:
+        task_id = task_obj["m_iHTaskID"]
+        task_on_end_id = task_obj["m_iSUOutgoingTask"]
+        task_start_npc_id = task_obj["m_iHNPCID"]
+
+        # reversal for one mission in retrobution
+        if sources["is_retrobution"] and task_id == 5176:
+            task_on_end_id = task_obj["m_iFOutgoingTask"]
+
+        if task_on_end_id in task_id_set:
+            reverse_success_subgraph.add_edge(task_on_end_id, task_id)
+
+        if task_on_end_id == 0:
+            last_task = task_id
+
+        # assumption: if multiple tasks have the start NPC or nano mission task ID, the first one is the start task
+        if first_task < 0 and (task_start_npc_id > 0 or task_id in nano_mission_task_id_set):
+            first_task = task_id
+
+    if last_task < 0:
+        raise ValueError(f"Last task is not set for mission: {mission_info_obj['ID']} {mission_info_obj['Name']}.")
+
+    shortest_paths_reverse_dict = dict(nx.single_source_all_shortest_paths(reverse_success_subgraph, last_task))
+    connected_nodes = list(shortest_paths_reverse_dict.keys())
+
+    if first_task < 0:
+        # fallback to the first task if not found
+        print(f"Warning: First task is not set for mission: {mission_info_obj['ID']} {mission_info_obj['Name']}. Falling back to the first task.")
+        first_task = next((task["m_iHTaskID"] for task in task_list if task["m_iHTaskID"] in shortest_paths_reverse_dict), task_list[0]["m_iHTaskID"])
+
+    success_chain_path = list(reversed(shortest_paths_reverse_dict[first_task][0]))
+    success_chain_nodes = set(success_chain_path)
+
+    # initially mark all tasks as unreachable, we will fix them later
+    task_states = dict.fromkeys(task_id_set, "UnreachableTask")
+
+    # then mark every reachable task as fail-repeat, we will fix them later
+    for node in connected_nodes:
+        task_states[node] = "FailRepeatTask"
+
+    # re-mark success tasks as such
+    for node in success_chain_nodes:
+        task_states[node] = "SuccessTask"
+
+    state_values = {
+        "SuccessTask": 0,
+        "FailRepeatTask": 1,
+        "UnreachableTask": 2,
+    }
+    def get_task_repr(x: dict) -> tuple[int, int]:
+        return (
+            state_values[task_states[x["m_iHTaskID"]]],
+            success_chain_path.index(x["m_iHTaskID"]) if x["m_iHTaskID"] in success_chain_path else 0,
+        )
+    sorted_task_list = sorted(task_list, key=get_task_repr)
+
+    return task_states, sorted_task_list
+
+
 def construct_drop_directory_data(sources: dict[str, dict], server_data_dir: Path, patch_names: list[str]) -> None:
     sources["mobs"] = get_patched(server_data_dir, "mobs", patch_names)
     sources["drops"] = get_patched(server_data_dir, "drops", patch_names)
@@ -1044,8 +1114,11 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
         }
         sources["mission_info"][mission_id] = mission_info_obj
 
-        for task_obj in task_list:
+        task_states, sorted_task_list = get_task_chains(sources, mission_info_obj, task_list)
+
+        for task_obj in sorted_task_list:
             task_id = task_obj["m_iHTaskID"]
+            task_state = task_states[task_id]
             task_type_id = task_obj["m_iHTaskType"]
             current_objective_id = task_obj["m_iHCurrentObjective"]
             task_start_npc_id = task_obj["m_iHNPCID"]
@@ -1122,6 +1195,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "ID": task_id,
                 "TypeID": task_type_id,
                 "Type": MISSION_TASK_TYPES[task_type_id],
+                "State": task_state,
                 "CurrentObjectiveID": current_objective_id,
                 "CurrentObjective": mission_string_list[current_objective_id]["m_pstrNameString"],
                 "RequiredInstanceID": task_obj["m_iRequireInstanceID"],
