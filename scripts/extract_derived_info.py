@@ -1114,6 +1114,8 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
         sources["mission_info"][mission_id] = mission_info_obj
 
         task_states, sorted_task_list = get_task_chains(sources, mission_info_obj, task_list)
+        sorted_task_ids = [task_obj["m_iHTaskID"] for task_obj in sorted_task_list]
+        mission_info_obj["TaskOrder"] = sorted_task_ids
 
         for task_obj in sorted_task_list:
             task_id = task_obj["m_iHTaskID"]
@@ -2916,8 +2918,9 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
                 ]
             ),
             "Tasks": lambda obj: "\n".join(
-                f"{v['ID']} {v['CurrentObjective']}"
-                for v in obj["Tasks"].values()
+                f"{tid} {task_obj['CurrentObjective']}"
+                for tid in obj["TaskOrder"]
+                if (task_obj := obj['Tasks'].get(tid)) and task_obj["State"] == "SuccessTask"
             ),
         },
         "mob_info": {

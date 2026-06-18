@@ -169,4 +169,5 @@ output*/
 artifacts/
 server_data/
 make_env.sh
+local_build*.sh
 google-service-account.json
