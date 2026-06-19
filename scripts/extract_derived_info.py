@@ -325,9 +325,11 @@ def get_task_chains(sources: dict, mission_info_obj: dict, task_list: list[dict]
     task_id_set = {task_obj["m_iHTaskID"] for task_obj in task_list}
     nano_mission_task_id_set = {sources["player_info"][level]["NanoMissionTaskID"] for level in sources["player_info"]}
 
+    full_graph = nx.DiGraph()
     reverse_success_subgraph = nx.DiGraph()
 
     # discovery phase
+    full_graph.add_nodes_from(task_id_set)
     reverse_success_subgraph.add_nodes_from(task_id_set)
     first_task = -1
     last_task = -1
@@ -335,14 +337,20 @@ def get_task_chains(sources: dict, mission_info_obj: dict, task_list: list[dict]
     for task_obj in task_list:
         task_id = task_obj["m_iHTaskID"]
         task_on_end_id = task_obj["m_iSUOutgoingTask"]
+        task_on_fail_id = task_obj["m_iFOutgoingTask"]
         task_start_npc_id = task_obj["m_iHNPCID"]
 
         # reversal for one mission in retrobution
         if sources["is_retrobution"] and task_id == 5176:
             task_on_end_id = task_obj["m_iFOutgoingTask"]
+            task_on_fail_id = task_obj["m_iSUOutgoingTask"]
 
         if task_on_end_id in task_id_set:
+            full_graph.add_edge(task_on_end_id, task_id)
             reverse_success_subgraph.add_edge(task_on_end_id, task_id)
+
+        if task_on_fail_id in task_id_set:
+            full_graph.add_edge(task_on_fail_id, task_id)
 
         if task_on_end_id == 0:
             last_task = task_id
@@ -355,7 +363,6 @@ def get_task_chains(sources: dict, mission_info_obj: dict, task_list: list[dict]
         raise ValueError(f"Last task is not set for mission: {mission_info_obj['ID']} {mission_info_obj['Name']}.")
 
     shortest_paths_reverse_dict = dict(nx.single_source_all_shortest_paths(reverse_success_subgraph, last_task))
-    connected_nodes = list(shortest_paths_reverse_dict.keys())
 
     if first_task < 0:
         # fallback to the first task if not found
@@ -363,15 +370,17 @@ def get_task_chains(sources: dict, mission_info_obj: dict, task_list: list[dict]
 
     success_chain_path = list(reversed(shortest_paths_reverse_dict[first_task][0]))
     success_chain_nodes = set(success_chain_path)
+    reachable_task_ids = nx.descendants(full_graph, first_task)
 
     # initially mark all tasks as unreachable, we will fix them later
     task_states = dict.fromkeys(task_id_set, "UnreachableTask")
 
     # then mark every reachable task as fail-repeat, we will fix them later
-    for node in connected_nodes:
+    # start task not included, but it's fine
+    for node in reachable_task_ids:
         task_states[node] = "FailRepeatTask"
 
-    # re-mark success tasks as such
+    # re-mark success tasks as such (start task also included)
     for node in success_chain_nodes:
         task_states[node] = "SuccessTask"
 
@@ -3239,6 +3248,7 @@ def extract_derived_info(
         sources["xdt"] = json.load(f)
 
     sources["is_retrobution"] = "retrobution" in str(in_dir)
+    sources["is_academy"] = "beta-2011" in str(in_dir)
     sources["active_event"] = active_event
     sources["extra_npcs"] = extras.get("extra_npcs", {})
     sources["extra_mobs"] = extras.get("extra_mobs", {})
