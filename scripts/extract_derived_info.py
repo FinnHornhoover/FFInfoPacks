@@ -346,11 +346,11 @@ def get_task_chains(sources: dict, mission_info_obj: dict, task_list: list[dict]
             task_on_fail_id = task_obj["m_iSUOutgoingTask"]
 
         if task_on_end_id in task_id_set:
-            full_graph.add_edge(task_on_end_id, task_id)
+            full_graph.add_edge(task_id, task_on_end_id)
             reverse_success_subgraph.add_edge(task_on_end_id, task_id)
 
         if task_on_fail_id in task_id_set:
-            full_graph.add_edge(task_on_fail_id, task_id)
+            full_graph.add_edge(task_id, task_on_fail_id)
 
         if task_on_end_id == 0:
             last_task = task_id
