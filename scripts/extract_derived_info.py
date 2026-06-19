@@ -1382,8 +1382,7 @@ def construct_instance_data(sources: dict[str, dict]) -> None:
         # fix for incorrectly set up warp NPCs in Retrobution
         # vendors + sapphire banker have invisible warps
         if (
-            entry_instance_id == WORLD_INSTANCE_ID
-            and (warp_npc_type["Category"] == "Vendor" or "Bank" in warp_npc_type["Name"])
+            (warp_npc_type["Category"] == "Vendor" or "Bank" in warp_npc_type["Name"])
             and len(warp_npc_info) > 0
             and all(npc["InstanceID"] == WORLD_INSTANCE_ID for npc in warp_npc_info.values())
         ):
