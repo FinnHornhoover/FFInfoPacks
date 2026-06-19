@@ -493,6 +493,10 @@ def construct_player_info_data(sources: dict) -> None:
     for player_growth_obj in player_growth_data_obj_list:
         player_level = player_growth_obj["m_iLevel"]
 
+        # After Level 36 it's junk data
+        if player_level > 36:
+            break
+
         sources["player_info"][player_level] = {
             **sources["player_info"][0],
             "Level": player_level,
@@ -503,10 +507,20 @@ def construct_player_info_data(sources: dict) -> None:
             "PunchAccuracy": player_growth_obj["m_iAccuracy"],
             "NextLevelFMCost": player_growth_obj["m_iReqBlob_NanoCreate"],
             "NanoPowerChangeFMCost": player_growth_obj["m_iReqBlob_NanoTune"],
-            "FMLimit": player_growth_obj["m_iFMLimit"] if not sources["is_retrobution"] else player_growth_obj["m_iReqBlob_NanoCreate"] * 2,
+            "FMLimit": player_growth_obj["m_iFMLimit"],
             "NextNanoID": player_growth_obj["m_iNanoID"] + 1,
             "NanoMissionTaskID": player_growth_obj["m_iNanoQuestTaskID"],
         }
+
+    # version specific fixes
+    for player_info_obj in sources["player_info"].values():
+        if sources["is_retrobution"]:
+            player_info_obj["FMLimit"] = player_info_obj["NextLevelFMCost"] * 2
+
+        if sources["is_academy"] or player_info_obj["Level"] == 36:
+            # for academy and level 36, nano missions don't gate level progression or auto-assign tasks
+            player_info_obj["NextNanoID"] = 0
+            player_info_obj["NanoMissionTaskID"] = 0
 
 
 def construct_item_info_data(sources: dict[str, dict]) -> None:
