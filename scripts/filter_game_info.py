@@ -1,4 +1,3 @@
-import os
 import sys
 import json
 import shutil
@@ -393,7 +392,7 @@ def filter_game_info(config_how_path: Path, config_exclude_path: Path, config_ex
     out_areas_path = out_dir / "areas.json"
     out_xdt_path = out_dir / "xdt.json"
 
-    if os.getenv("SKIP_FILTERING") == "1" or not config_how_path.is_file() or not config_exclude_path.is_file():
+    if not config_how_path.is_file() or not config_exclude_path.is_file():
         return
 
     all_config = {}
