@@ -1503,7 +1503,7 @@ def construct_nano_data(sources: dict) -> None:
 
         # fill player data
         for player_info_obj in sources["player_info"].values():
-            if player_info_obj["NextNanoID"] == nano_id:
+            if nano_id > 0 and player_info_obj["NextNanoID"] == nano_id:
                 player_info_obj["NextNano"] = sources["nano_info"][nano_id]
                 break
 
