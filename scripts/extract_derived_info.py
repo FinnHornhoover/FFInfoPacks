@@ -323,7 +323,7 @@ def to_area_tag(area_obj: dict) -> str:
 
 def get_task_chains(sources: dict, mission_info_obj: dict, task_list: list[dict]) -> tuple[dict[int, str], list[dict]]:
     task_id_set = {task_obj["m_iHTaskID"] for task_obj in task_list}
-    nano_mission_task_id_set = {sources["player_info"][level]["NanoMissionTaskID"] for level in sources["player_info"]}
+    nano_mission_task_id_set = {sources["player_info"][level]["TaskAssignedAtFMFillID"] for level in sources["player_info"]}
 
     full_graph = nx.DiGraph()
     reverse_success_subgraph = nx.DiGraph()
@@ -492,14 +492,11 @@ def construct_player_info_data(sources: dict) -> None:
         "NextLevelFMCost": 0,
         "NanoPowerChangeFMCost": 0,
         "FMLimit": 0,
-        "NextNanoID": 1,
-        # filled later
-        "NextNano": None,
-        "NanoMissionTaskID": 2250, # A Fusion Matter first task
-        # filled later
-        "NanoMissionTask": None,
-        "NanoMissionID": 0,
-        "NanoMission": None,
+        "NanosUnlocked": {},
+        "TaskAssignedAtFMFillID": 2250,  # A Fusion Matter first task
+        "TaskAssignedAtFMFill": None,
+        "MissionAssignedAtFMFillID": 0,
+        "MissionAssignedAtFMFill": None,
     }
 
     for player_growth_obj in player_growth_data_obj_list:
@@ -520,8 +517,8 @@ def construct_player_info_data(sources: dict) -> None:
             "NextLevelFMCost": player_growth_obj["m_iReqBlob_NanoCreate"],
             "NanoPowerChangeFMCost": player_growth_obj["m_iReqBlob_NanoTune"],
             "FMLimit": player_growth_obj["m_iFMLimit"],
-            "NextNanoID": player_growth_obj["m_iNanoID"] + 1,
-            "NanoMissionTaskID": player_growth_obj["m_iNanoQuestTaskID"],
+            "NanosUnlocked": {},  # separate dict per level
+            "TaskAssignedAtFMFillID": player_growth_obj["m_iNanoQuestTaskID"],
         }
 
     # version specific fixes
@@ -531,8 +528,7 @@ def construct_player_info_data(sources: dict) -> None:
 
         if sources["is_academy"] or player_info_obj["Level"] == 36:
             # for academy and level 36, nano missions don't gate level progression or auto-assign tasks
-            player_info_obj["NextNanoID"] = 0
-            player_info_obj["NanoMissionTaskID"] = 0
+            player_info_obj["TaskAssignedAtFMFillID"] = 0
 
 
 def construct_item_info_data(sources: dict[str, dict]) -> None:
@@ -1078,13 +1074,18 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
     quest_item_data_list = quest_item_table_obj["m_pItemData"]
     quest_item_string_list = quest_item_table_obj["m_pItemStringData"]
 
+    nano_id_to_unlock_level_map = {}
+
     for mission_id, task_list in mission_task_groupped_list.items():
         mission_obj = task_list[0]
+        # nanos here are indexes of nano_data_list, and may differ from m_iNanoNumber in nano_data_list
         task_required_nano_id = mission_obj["m_iCSTRReqNano"][0]
         task_required_nano_obj = nano_data_list[task_required_nano_id]
         task_end_nano_id = mission_obj["m_iSTNanoID"]
         task_end_nano_obj = nano_data_list[task_end_nano_id]
         task_journal_npc_id = mission_obj["m_iHJournalNPCID"]
+        task_journal_npc_name = ""
+        task_journal_npc_icon = ""
 
         if task_journal_npc_id in sources["npc_mob_type_info"]:
             task_journal_npc_obj = sources["npc_mob_type_info"][task_journal_npc_id]
@@ -1138,6 +1139,9 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             },
         }
         sources["mission_info"][mission_id] = mission_info_obj
+
+        if task_end_nano_obj:
+            nano_id_to_unlock_level_map[task_end_nano_obj["m_iNanoNumber"]] = mission_info_obj["Level"]
 
         task_states, sorted_task_list = get_task_chains(sources, mission_info_obj, task_list)
         sorted_task_ids = [task_obj["m_iHTaskID"] for task_obj in sorted_task_list]
@@ -1345,11 +1349,15 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
 
             # fill level up mission data
             for player_info_obj in sources["player_info"].values():
-                if player_info_obj["NanoMissionTaskID"] == task_id:
-                    player_info_obj["NanoMissionTask"] = mission_info_obj["Tasks"][task_id]
-                    player_info_obj["NanoMissionID"] = mission_info_obj["ID"]
-                    player_info_obj["NanoMission"] = mission_info_obj
+                if player_info_obj["TaskAssignedAtFMFillID"] == task_id:
+                    player_info_obj["TaskAssignedAtFMFill"] = mission_info_obj["Tasks"][task_id]
+                    player_info_obj["MissionAssignedAtFMFillID"] = mission_info_obj["ID"]
+                    player_info_obj["MissionAssignedAtFMFill"] = mission_info_obj
                     break
+
+    # fill nanos unlocked (filled while we add nanos)
+    for nano_id, unlock_level in sorted(nano_id_to_unlock_level_map.items()):
+        sources["player_info"][unlock_level]["NanosUnlocked"][nano_id] = None
 
 
 def construct_instance_data(sources: dict[str, dict]) -> None:
@@ -1501,12 +1509,13 @@ def construct_nano_data(sources: dict) -> None:
             "NanoIcon": f"icons/nanoicon_{nano_icon_list[nano_data_obj['m_iIcon1']]['m_iIconNumber']:02d}.png",
         }
 
-        # fill player data
-        for player_info_obj in sources["player_info"].values():
-            if nano_id > 0 and player_info_obj["NextNanoID"] == nano_id:
-                player_info_obj["NextNano"] = sources["nano_info"][nano_id]
-                break
-
+    # fill player data
+    for player_info_obj in sources["player_info"].values():
+        player_info_obj["NanosUnlocked"] = {
+            nano_id: sources["nano_info"][nano_id]
+            for nano_id in player_info_obj["NanosUnlocked"]
+            if nano_id > 0 and nano_id in sources["nano_info"]
+        }
 
 def construct_vendor_data(sources: dict) -> None:
     sources["vendor_info"] = {}
@@ -2725,8 +2734,8 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             "NextLevelFMCost": "Next Level FM Cost",
             "NanoPowerChangeFMCost": "Nano Power Change FM Cost",
             "FMLimit": "FM Limit",
-            "NextNano": "Next Nano",
-            "NanoMission": "Nano Mission",
+            "NanosUnlocked": "Nanos Unlocked",
+            "MissionAssignedAtFMFill": "Mission Assigned at FM Fill",
         },
         "item_info": {
             "Type": "Type",
@@ -2905,11 +2914,11 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
     }
     converters = {
         "player_info": {
-            "NextNano": lambda obj: f"{obj['NextNanoID']} {obj['NextNano']['Name']}" if obj["NextNano"] else "",
-            "NanoMission": lambda obj: (
-                f"{obj['NanoMissionID']} {obj['NanoMission']['Name']}\n"
-                f"Task {obj['NanoMissionTaskID']} {obj['NanoMissionTask']['CurrentObjective']}"
-                if obj["NanoMissionTask"]
+            "NanosUnlocked": lambda obj: "\n".join(f"{k} {v['Name']}" for k, v in obj["NanosUnlocked"].items()),
+            "MissionAssignedAtFMFill": lambda obj: (
+                f"{obj['MissionAssignedAtFMFillID']} {obj['MissionAssignedAtFMFill']['Name']}\n"
+                f"Task {obj['TaskAssignedAtFMFillID']} {obj['TaskAssignedAtFMFill']['CurrentObjective']}"
+                if obj["TaskAssignedAtFMFill"]
                 else ""
             ),
         },
