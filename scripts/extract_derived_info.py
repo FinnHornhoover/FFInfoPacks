@@ -1112,7 +1112,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             "RequiredNanoID": task_required_nano_id,
             "RequiredNano": (
                 "{m_strName} - {m_strComment1}".format(**nano_string_list[task_required_nano_obj["m_iNanoName"]])
-                if task_required_nano_id > 0
+                if task_required_nano_obj["m_iNanoNumber"] > 0
                 else "None"
             ),
             "RequiredGuideID": mission_obj["m_iCSTReqGuide"],
@@ -1130,10 +1130,10 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "ItemSelectionNeeded": False,
                 "FM": 0,
                 "Taros": 0,
-                "NanoRewardID": task_end_nano_id,
+                "NanoRewardID": task_end_nano_obj["m_iNanoNumber"],
                 "NanoReward": (
                     "{m_strName} - {m_strComment1}".format(**nano_string_list[task_end_nano_obj["m_iNanoName"]])
-                    if task_end_nano_id > 0
+                    if task_end_nano_obj["m_iNanoNumber"] > 0
                     else "None"
                 ),
             },
