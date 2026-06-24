@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed to count previous releases
+          fetch-depth: 0  # Needed for changelog generation
 
       - name: Build Docker image
         run: docker build -t ff-extractor --secret id=SSH_PRIVATE_KEY --secret id=SSH_PASSPHRASE .
@@ -41,9 +41,16 @@ jobs:
           echo "$changelog" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-          # Count previous releases (excluding drafts and pre-releases)
-          release_number=$(gh release list --exclude-drafts --exclude-pre-releases | wc -l)
-          release_number=$((release_number + 1))
+          # Determine next release number from the latest release tag
+          latest_tag=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 --json tagName -q '.[0].tagName // empty')
+          if [ -z "$latest_tag" ]; then
+            release_number=1
+          elif [[ "$latest_tag" =~ ^release-([0-9]+)$ ]]; then
+            release_number=$((BASH_REMATCH[1] + 1))
+          else
+            echo "Could not parse release number from tag: $latest_tag" >&2
+            exit 1
+          fi
           echo "release_number=$release_number" >> $GITHUB_OUTPUT
 
           # Format current date
@@ -75,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed to count previous releases
+          fetch-depth: 0
 
       - name: Build Docker image for uploading CSV files
         # This is kept as a separate step to avoid breaking releases
