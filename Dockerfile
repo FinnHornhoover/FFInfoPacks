@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y git graphviz graphviz-dev
 
 ADD requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-binary pygraphviz -r requirements.txt
 
 ADD config/build-config.yml config/build-config.yml
 ADD scripts/download_resources.py scripts/download_resources.py
