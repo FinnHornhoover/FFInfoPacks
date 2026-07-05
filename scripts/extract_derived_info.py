@@ -1178,19 +1178,19 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             task_end_journal_obj = mission_journal_data_list[task_end_journal_id] if task_end_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
             task_fail_journal_obj = mission_journal_data_list[task_fail_journal_id] if task_fail_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
 
-            if task_start_npc_id > 0:
+            if task_start_npc_id > 0 and task_state != "UnreachableTask":
                 mission_info_obj["MissionStartNPCID"] = task_start_npc_id
                 task_start_npc_obj = sources["npc_mob_type_info"][task_start_npc_id]
                 mission_info_obj["MissionStartNPCName"] = task_start_npc_obj["Name"]
                 mission_info_obj["MissionStartNPCIcon"] = task_start_npc_obj["Icon"]
 
-            if task_end_npc_id > 0:
+            if task_end_npc_id > 0 and task_state != "UnreachableTask":
                 mission_info_obj["MissionEndNPCID"] = task_end_npc_id
                 task_end_npc_obj = sources["npc_mob_type_info"][task_end_npc_id]
                 mission_info_obj["MissionEndNPCName"] = task_end_npc_obj["Name"]
                 mission_info_obj["MissionEndNPCIcon"] = task_end_npc_obj["Icon"]
 
-            if task_reward_id > 0:
+            if task_reward_id > 0 and task_state != "UnreachableTask":
                 task_reward_obj = mission_reward_data_list[task_reward_id]
                 mission_info_obj["Rewards"]["Taros"] = task_reward_obj["m_iCash"]
                 mission_info_obj["Rewards"]["FM"] = task_reward_obj["m_iFusionMatter"]
