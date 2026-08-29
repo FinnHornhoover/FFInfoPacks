@@ -21,7 +21,7 @@ RUN --mount=type=secret,id=SSH_PRIVATE_KEY \
     printf '#!/bin/sh\ncat /run/secrets/SSH_PASSPHRASE\n' > /tmp/ssh-askpass && \
     chmod +x /tmp/ssh-askpass && \
     eval "$(ssh-agent -s)" && \
-    DISPLAY=:0 SSH_ASKPASS=/tmp/ssh-askpass SSH_ASKPASS_REQUIRE=force ssh-add /run/secrets/SSH_PRIVATE_KEY </dev/null && \
+    { tr -d '\r' < /run/secrets/SSH_PRIVATE_KEY; printf '\n'; } | DISPLAY=:0 SSH_ASKPASS=/tmp/ssh-askpass SSH_ASKPASS_REQUIRE=force ssh-add - && \
     python scripts/download_resources.py config/build-config.yml assets artifacts server_data && \
     rm -f /tmp/ssh-askpass
 
