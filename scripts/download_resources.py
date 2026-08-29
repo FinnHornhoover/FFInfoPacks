@@ -1,5 +1,6 @@
 import sys
 import asyncio
+import os
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -54,6 +55,7 @@ async def download_zip_or_resources(
     asset_root: Path,
     artifact_root: Path,
     must_fetch_zip: bool,
+    force_resources: bool,
 ):
     if "api-url" in build_config:
         api_info = await get_json_info(client, build_config["api-url"])
@@ -70,13 +72,16 @@ async def download_zip_or_resources(
     zip_name = f"{build}_r{revision}{nickname}.zip"
 
     try:
+        if force_resources:
+            raise ValueError("Force resources is enabled.")
+
         await download_file(
             client,
             f"{REPO_RELEASE_URL}/{zip_name}",
             artifact_root / zip_name,
         )
-    except httpx.HTTPStatusError:
-        if must_fetch_zip:
+    except (httpx.HTTPStatusError, ValueError):
+        if must_fetch_zip and not force_resources:
             raise
 
         await asyncio.gather(
@@ -94,6 +99,10 @@ async def download_zip_or_resources(
 async def download_resources(
     config: dict[str, dict[str, Any]], asset_root: Path, artifact_root: Path, server_data_root: Optional[Path]
 ):
+    forced_build = os.getenv("FFINFO_FORCED_BUILD")
+    if forced_build and forced_build not in config:
+        raise ValueError(f"Unknown FFINFO_FORCED_BUILD: {forced_build}")
+
     async with httpx.AsyncClient(
         limits=httpx.Limits(max_connections=5),
         timeout=httpx.Timeout(None),
@@ -104,6 +113,10 @@ async def download_resources(
         artifact_root.mkdir(parents=True, exist_ok=True)
 
         for build, build_config in config.items():
+            # If a build is forced, skip every other configured build.
+            if forced_build and build != forced_build:
+                continue
+
             (asset_root / build).mkdir(parents=True, exist_ok=True)
 
             if server_data_root:
@@ -111,7 +124,9 @@ async def download_resources(
 
             coroutines.append(
                 download_zip_or_resources(
-                    client, build, build_config, asset_root, artifact_root, must_fetch_zip=(server_data_root is None)
+                    client, build, build_config, asset_root, artifact_root,
+                    must_fetch_zip=(server_data_root is None),
+                    force_resources=(build == forced_build),
                 )
             )
 

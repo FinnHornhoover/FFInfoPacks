@@ -1,4 +1,5 @@
 import sys
+import os
 import json
 import shutil
 import traceback
@@ -446,6 +447,8 @@ def main(config_root: Path, in_root: Path, out_root: Path):
         out_dir = out_root / in_dir.name
         active_event = config_build[in_dir.name].get("active_event", "None")
         config_exclude_path = config_root / f"exclude-{in_dir.name}.yml"
+        if os.getenv("FFINFO_SKIP_FILTERING"):
+            config_exclude_path = config_root / "__unfiltered__"
         config_extras_path = config_root / f"extras-{in_dir.name}.yml"
         filter_game_info(config_exclude_how_path, config_exclude_path, config_extras_path, in_dir, out_dir, active_event)
 

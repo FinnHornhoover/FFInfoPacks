@@ -2,6 +2,11 @@ FROM python:3.13.10-bookworm
 
 WORKDIR /app
 
+ARG FFINFO_FORCED_BUILD=""
+ARG FFINFO_SKIP_FILTERING=""
+ENV FFINFO_FORCED_BUILD=$FFINFO_FORCED_BUILD
+ENV FFINFO_SKIP_FILTERING=$FFINFO_SKIP_FILTERING
+
 RUN apt-get update && apt-get install -y git graphviz graphviz-dev
 
 ADD requirements.txt .
@@ -10,12 +15,15 @@ RUN pip install --no-binary pygraphviz -r requirements.txt
 ADD config/build-config.yml config/build-config.yml
 ADD scripts/download_resources.py scripts/download_resources.py
 
-RUN mkdir -p ~/.ssh
-RUN ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
-RUN --mount=type=secret,id=SSH_PASSPHRASE echo "echo $(cat /run/secrets/SSH_PASSPHRASE)" > ~/.ssh_askpass && chmod +x ~/.ssh_askpass
-RUN --mount=type=secret,id=SSH_PRIVATE_KEY eval $(ssh-agent -s) && \
-    echo "$(cat /run/secrets/SSH_PRIVATE_KEY)" | tr -d '\r' | DISPLAY=None SSH_ASKPASS=~/.ssh_askpass ssh-add - && \
-    python scripts/download_resources.py config/build-config.yml assets artifacts server_data
+RUN mkdir -p /root/.ssh && ssh-keyscan -t ed25519 github.com >> /root/.ssh/known_hosts
+RUN --mount=type=secret,id=SSH_PRIVATE_KEY \
+    --mount=type=secret,id=SSH_PASSPHRASE \
+    printf '#!/bin/sh\ncat /run/secrets/SSH_PASSPHRASE\n' > /tmp/ssh-askpass && \
+    chmod +x /tmp/ssh-askpass && \
+    eval "$(ssh-agent -s)" && \
+    DISPLAY=:0 SSH_ASKPASS=/tmp/ssh-askpass SSH_ASKPASS_REQUIRE=force ssh-add /run/secrets/SSH_PRIVATE_KEY </dev/null && \
+    python scripts/download_resources.py config/build-config.yml assets artifacts server_data && \
+    rm -f /tmp/ssh-askpass
 
 ADD scripts/extract_game_info.py scripts/extract_game_info.py
 RUN python scripts/extract_game_info.py assets pre_filter
