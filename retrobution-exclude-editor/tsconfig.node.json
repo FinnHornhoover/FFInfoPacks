@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "types": ["node", "@cloudflare/workers-types"]
+  },
+  "include": ["vite.config.ts", "functions"]
+}

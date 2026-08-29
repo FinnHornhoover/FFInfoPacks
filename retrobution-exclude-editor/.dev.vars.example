@@ -1,0 +1,5 @@
+# Copy this file to .dev.vars. Never commit .dev.vars.
+EDITOR_KEY="use-the-same-long-key-used-to-pack-catalog.enc"
+GITHUB_TOKEN="fine-grained-token-for-your-test-fork"
+GITHUB_OWNER="your-github-username"
+GITHUB_REPO="FFInfoPacks"

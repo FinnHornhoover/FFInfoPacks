@@ -171,3 +171,11 @@ server_data/
 make_env.sh
 local_build*.sh
 google-service-account.json
+
+# Retrobution Exclude Editor Catalog
+editor-artifacts/
+retrobution-exclude-editor/public/catalog.enc
+node_modules/
+retrobution-exclude-editor/.dev.vars
+*.tsbuildinfo
+.wrangler/
