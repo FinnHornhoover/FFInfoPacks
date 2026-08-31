@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
-import { fetchExclusions, submitExclusions } from "./api";
-import { decryptCatalog, signSubmission } from "./crypto";
+import { useEffect, useMemo, useState } from "react";
+import { fetchExclusions, getCatalogRefreshStatus, startCatalogRefresh, submitExclusions } from "./api";
+import type { CatalogRefreshStatus } from "./api";
+import { decryptCatalog, signCatalogRefresh, signSubmission } from "./crypto";
 import {
   bannedKeys,
   categoryLabel,
@@ -76,6 +77,32 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [refreshStatus, setRefreshStatus] = useState<CatalogRefreshStatus | null>(null);
+  const [refreshStarting, setRefreshStarting] = useState(false);
+  const [refreshError, setRefreshError] = useState("");
+
+  useEffect(() => {
+    if (!refreshStatus?.requestId || refreshStatus.status === "completed") return;
+    const requestId = refreshStatus.requestId;
+    let stopped = false;
+    const poll = async () => {
+      try {
+        const next = await getCatalogRefreshStatus(requestId);
+        if (!stopped) {
+          setRefreshStatus(next);
+          setRefreshError("");
+        }
+      } catch (reason) {
+        if (!stopped) setRefreshError(reason instanceof Error ? reason.message : "Could not check refresh status.");
+      }
+    };
+    void poll();
+    const timer = window.setInterval(() => void poll(), 5_000);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+    };
+  }, [refreshStatus?.requestId, refreshStatus?.status]);
 
   async function unlock(event: React.FormEvent) {
     event.preventDefault();
@@ -204,6 +231,22 @@ export function App() {
     }
   }
 
+  async function refreshCatalog() {
+    if (changedKeys.size > 0 && !window.confirm("Refreshing will redeploy the editor. Save your exclusion changes first if you do not want to lose them when reloading.")) return;
+    setRefreshStarting(true);
+    setRefreshError("");
+    try {
+      const requestId = crypto.randomUUID();
+      const timestamp = new Date().toISOString();
+      const signature = await signCatalogRefresh(unlockKey, timestamp, requestId);
+      setRefreshStatus(await startCatalogRefresh(requestId, timestamp, signature));
+    } catch (reason) {
+      setRefreshError(reason instanceof Error ? reason.message : "Could not start the catalog refresh.");
+    } finally {
+      setRefreshStarting(false);
+    }
+  }
+
   if (!catalog) {
     return (
       <main className="unlock-layout">
@@ -243,9 +286,13 @@ export function App() {
         <div>
           <div className="eyebrow">Retrobution r{catalog.revision}</div>
           <h1>Item exclusions</h1>
+          <div className="catalog-built">Catalog built {new Date(catalog.builtAt).toLocaleString()}</div>
         </div>
         <div className="header-actions">
           <span>{currentBanned.size} banned · {changedKeys.size} changed</span>
+          <button className="secondary" type="button" onClick={refreshCatalog} disabled={refreshStarting || (refreshStatus !== null && refreshStatus.status !== "completed")}>
+            {refreshStarting ? "Starting…" : "Refresh catalog"}
+          </button>
           <button className="secondary" type="button" onClick={lock}>Lock</button>
           <button className="primary" type="button" onClick={submit} disabled={busy || changedKeys.size === 0}>
             {busy ? "Submitting…" : "Submit changes"}
@@ -272,6 +319,25 @@ export function App() {
         </aside>
 
         <main className="catalog">
+          {(refreshStatus || refreshError) && (
+            <div className={"refresh-banner " + (refreshError || (refreshStatus?.status === "completed" && refreshStatus.conclusion !== "success") ? "error" : "")}>
+              <span>{refreshError || (refreshStatus?.status === "completed"
+                ? refreshStatus.conclusion === "success"
+                  ? "Catalog refreshed successfully. Reload this page to use the new catalog."
+                  : "Catalog refresh finished with status: " + (refreshStatus.conclusion ?? "unknown") + "."
+                : refreshStatus?.status === "in_progress"
+                  ? "Refreshing the catalog…"
+                  : refreshStatus?.status === "queued"
+                    ? "Catalog refresh is queued…"
+                    : "Waiting for the catalog refresh to start…")}</span>
+              <div className="refresh-actions">
+                {refreshStatus?.runUrl && <a href={refreshStatus.runUrl} target="_blank" rel="noreferrer">View workflow</a>}
+                {refreshStatus?.status === "completed" && refreshStatus.conclusion === "success" && (
+                  <button className="secondary" type="button" onClick={() => window.location.reload()}>Reload now</button>
+                )}
+              </div>
+            </div>
+          )}
           {(message || error) && <div className={error ? "banner error" : "banner"}>{error || message}</div>}
           <div className="results-heading"><strong>{filteredItems.length.toLocaleString()} items</strong><span>Red items are banned</span></div>
           <div className="item-grid">

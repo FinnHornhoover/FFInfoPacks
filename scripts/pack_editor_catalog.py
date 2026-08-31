@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -78,6 +79,7 @@ def build_payload(archive: zipfile.ZipFile, revision: int) -> bytes:
     payload = {
         "formatVersion": 1,
         "revision": revision,
+        "builtAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "items": items,
         "icons": icons,
     }

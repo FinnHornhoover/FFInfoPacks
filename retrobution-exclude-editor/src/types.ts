@@ -31,6 +31,7 @@ export interface CatalogItem {
 export interface Catalog {
   formatVersion: 1;
   revision: number;
+  builtAt: string;
   items: CatalogItem[];
   icons: Record<string, string>;
 }

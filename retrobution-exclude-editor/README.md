@@ -1,6 +1,6 @@
 # Retrobution Exclusion Editor
 
-Static Vite application for reviewing and updating `config/exclude-retrobution.yml`. Item metadata and icons are encrypted at build time, while banned status is fetched live after unlock.
+Static Vite application for reviewing and updating `config/exclude-retrobution.yml`. Item metadata, icons, and the catalog build time are encrypted at build time, while banned status is fetched live after unlock.
 
 ## Local testing
 
@@ -46,7 +46,7 @@ npm run build --prefix retrobution-exclude-editor
 npm run preview:pages --prefix retrobution-exclude-editor
 ```
 
-Open the URL printed by Wrangler and enter `EDITOR_KEY`.
+Open the URL printed by Wrangler and enter `EDITOR_KEY`. The Refresh catalog button dispatches `.github/workflows/editor.yml`, polls its run status, and prompts you to reload after deployment.
 
 ## Deployment configuration
 
@@ -65,8 +65,8 @@ GitHub Actions variable:
 Cloudflare Pages Function secrets:
 
 - `EDITOR_KEY`: must match the key used to encrypt the catalog.
-- `GITHUB_TOKEN`: fine-grained token with Contents read/write permission for the target repository.
+- `GITHUB_TOKEN`: fine-grained token scoped to the target repository with Contents read/write and Actions read/write permissions.
 
-Optional Pages variables `GITHUB_OWNER` and `GITHUB_REPO` default to `FinnHornhoover` and `FFInfoPacks`.
+Optional Pages variables `GITHUB_OWNER` and `GITHUB_REPO` default to `FinnHornhoover` and `FFInfoPacks`. The editor workflow can be run manually and is also called by the release workflow when a release is created.
 
 The function only updates `config/exclude-retrobution.yml` on `main` and rejects concurrent changes using GitHub's blob SHA. Rotating `EDITOR_KEY` requires rebuilding the catalog and updating the Pages secret.

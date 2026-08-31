@@ -51,7 +51,7 @@ export async function decryptCatalog(envelope: ArrayBuffer, passphrase: string):
   }
 
   const catalog = JSON.parse(await decompressGzip(new Uint8Array(compressed))) as Catalog;
-  if (catalog.formatVersion !== 1 || !Array.isArray(catalog.items) || catalog.icons === null) {
+  if (catalog.formatVersion !== 1 || typeof catalog.builtAt !== "string" || !Array.isArray(catalog.items) || catalog.icons === null) {
     throw new Error("The decrypted catalog format is not supported.");
   }
   return catalog;
@@ -71,6 +71,23 @@ export async function signSubmission(
     ["sign"],
   );
   const message = new TextEncoder().encode(`${timestamp}\n${sha}\n${content}`);
+  const signature = new Uint8Array(await crypto.subtle.sign("HMAC", key, message));
+  return Array.from(signature, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export async function signCatalogRefresh(
+  passphrase: string,
+  timestamp: string,
+  requestId: string,
+): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(passphrase),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const message = new TextEncoder().encode(`${timestamp}\n${requestId}\nrefresh-catalog`);
   const signature = new Uint8Array(await crypto.subtle.sign("HMAC", key, message));
   return Array.from(signature, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
