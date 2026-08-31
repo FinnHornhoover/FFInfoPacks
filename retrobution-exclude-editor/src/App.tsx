@@ -97,7 +97,7 @@ export function App() {
       }
     };
     void poll();
-    const timer = window.setInterval(() => void poll(), 5_000);
+    const timer = window.setInterval(() => void poll(), 60_000);
     return () => {
       stopped = true;
       window.clearInterval(timer);
@@ -232,7 +232,10 @@ export function App() {
   }
 
   async function refreshCatalog() {
-    if (changedKeys.size > 0 && !window.confirm("Refreshing will redeploy the editor. Save your exclusion changes first if you do not want to lose them when reloading.")) return;
+    const unsavedWarning = changedKeys.size > 0
+      ? ` You currently have ${changedKeys.size} unsaved change(s).`
+      : "";
+    if (!window.confirm(`Refreshing the catalog will lock the editor until deployment finishes.${unsavedWarning} Reloading afterward will discard any unsaved progress. Continue?`)) return;
     setRefreshStarting(true);
     setRefreshError("");
     try {
@@ -279,10 +282,37 @@ export function App() {
   const weaponTypes = optionValues(catalog.items, "weaponType").filter((value) => value !== "None");
   const rarities = optionValues(catalog.items, "rarity");
   const genders = optionValues(catalog.items, "gender");
+  const refreshSucceeded = refreshStatus?.status === "completed" && refreshStatus.conclusion === "success";
+  const refreshLocked = refreshStarting || (refreshStatus !== null && (refreshStatus.status !== "completed" || refreshSucceeded));
+  const refreshMessage = refreshError || (refreshStarting
+    ? "Requesting a catalog refresh…"
+    : refreshSucceeded
+      ? "Catalog refreshed successfully. Refresh this page to use the new catalog."
+      : refreshStatus?.status === "in_progress"
+        ? "Refreshing the catalog…"
+        : refreshStatus?.status === "queued"
+          ? "Catalog refresh is queued…"
+          : refreshStatus?.status === "completed"
+            ? `Catalog refresh finished with status: ${refreshStatus.conclusion ?? "unknown"}.`
+            : "Waiting for the catalog refresh to start…");
 
   return (
-    <div className="app-shell">
-      <header>
+    <div className={`app-shell ${refreshLocked ? "is-refresh-locked" : ""}`}>
+      {refreshLocked && (
+        <section className="refresh-lock" role="status" aria-live="polite">
+          <div className="refresh-lock-card">
+            <div className="eyebrow">Catalog update</div>
+            <h2>{refreshSucceeded ? "The new catalog is ready" : "Refresh in progress"}</h2>
+            <p>{refreshMessage}</p>
+            {!refreshSucceeded && <p className="refresh-hint">Editing is disabled until deployment finishes. This page checks GitHub Actions once per minute.</p>}
+            <div className="refresh-actions">
+              {refreshStatus?.runUrl && <a href={refreshStatus.runUrl} target="_blank" rel="noreferrer">View workflow</a>}
+              {refreshSucceeded && <button className="primary" type="button" onClick={() => window.location.reload()}>Refresh page</button>}
+            </div>
+          </div>
+        </section>
+      )}
+      <header inert={refreshLocked ? true : undefined}>
         <div>
           <div className="eyebrow">Retrobution r{catalog.revision}</div>
           <h1>Item exclusions</h1>
@@ -290,7 +320,7 @@ export function App() {
         </div>
         <div className="header-actions">
           <span>{currentBanned.size} banned · {changedKeys.size} changed</span>
-          <button className="secondary" type="button" onClick={refreshCatalog} disabled={refreshStarting || (refreshStatus !== null && refreshStatus.status !== "completed")}>
+          <button className="refresh-button" type="button" onClick={refreshCatalog} disabled={refreshStarting || (refreshStatus !== null && refreshStatus.status !== "completed")}>
             {refreshStarting ? "Starting…" : "Refresh catalog"}
           </button>
           <button className="secondary" type="button" onClick={lock}>Lock</button>
@@ -300,7 +330,7 @@ export function App() {
         </div>
       </header>
 
-      <div className="workspace">
+      <div className="workspace" inert={refreshLocked ? true : undefined}>
         <aside className="filters">
           <h2>Filters</h2>
           <label>Search<input value={filters.search} onChange={(e) => updateFilter("search", e.target.value)} placeholder="Name or ID" /></label>
@@ -319,25 +349,7 @@ export function App() {
         </aside>
 
         <main className="catalog">
-          {(refreshStatus || refreshError) && (
-            <div className={"refresh-banner " + (refreshError || (refreshStatus?.status === "completed" && refreshStatus.conclusion !== "success") ? "error" : "")}>
-              <span>{refreshError || (refreshStatus?.status === "completed"
-                ? refreshStatus.conclusion === "success"
-                  ? "Catalog refreshed successfully. Reload this page to use the new catalog."
-                  : "Catalog refresh finished with status: " + (refreshStatus.conclusion ?? "unknown") + "."
-                : refreshStatus?.status === "in_progress"
-                  ? "Refreshing the catalog…"
-                  : refreshStatus?.status === "queued"
-                    ? "Catalog refresh is queued…"
-                    : "Waiting for the catalog refresh to start…")}</span>
-              <div className="refresh-actions">
-                {refreshStatus?.runUrl && <a href={refreshStatus.runUrl} target="_blank" rel="noreferrer">View workflow</a>}
-                {refreshStatus?.status === "completed" && refreshStatus.conclusion === "success" && (
-                  <button className="secondary" type="button" onClick={() => window.location.reload()}>Reload now</button>
-                )}
-              </div>
-            </div>
-          )}
+          {refreshError && !refreshLocked && <div className="banner error">{refreshError}</div>}
           {(message || error) && <div className={error ? "banner error" : "banner"}>{error || message}</div>}
           <div className="results-heading"><strong>{filteredItems.length.toLocaleString()} items</strong><span>Red items are banned</span></div>
           <div className="item-grid">
