@@ -1,5 +1,5 @@
-name: Deploy exclusion editor
-run-name: ${{ inputs.request_id != '' && format('Refresh exclusion editor ({0})', inputs.request_id) || 'Refresh exclusion editor' }}
+name: Refresh Exclusion Editor Catalog
+run-name: ${{ inputs.request_id != '' && format('Refresh exclusion editor catalog ({0})', inputs.request_id) || 'Refresh exclusion editor catalog' }}
 
 on:
   workflow_call:
