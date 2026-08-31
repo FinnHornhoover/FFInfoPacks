@@ -24,6 +24,18 @@ const EMPTY_FILTERS: Filters = {
   maxLevel: "",
 };
 const PAGE_SIZE = 120;
+const CATEGORY_ORDER: Record<CatalogItem["category"], number> = {
+  hatitem: 0,
+  glassitem: 1,
+  backitem: 2,
+  shirtsitem: 3,
+  pantsitem: 4,
+  shoesitem: 5,
+  weaponitem: 6,
+  vehicleitem: 7,
+  generalitem: 8,
+  chestitem: 9,
+};
 
 function optionValues(items: CatalogItem[], field: "type" | "weaponType" | "rarity" | "gender") {
   return [...new Set(items.map((item) => item[field]).filter((value): value is string => Boolean(value)))].sort();
@@ -192,6 +204,14 @@ export function App() {
       if (filters.tradeable !== "all" && item.tradeable !== (filters.tradeable === "yes")) return false;
       if (filters.sellable !== "all" && item.sellable !== (filters.sellable === "yes")) return false;
       return item.level >= minLevel && item.level <= maxLevel;
+    }).sort((left, right) => {
+      const categoryDifference = CATEGORY_ORDER[left.category] - CATEGORY_ORDER[right.category];
+      if (categoryDifference !== 0) return categoryDifference;
+      if (left.category === "weaponitem" && right.category === "weaponitem") {
+        const weaponTypeDifference = (left.weaponType ?? "").localeCompare(right.weaponType ?? "");
+        if (weaponTypeDifference !== 0) return weaponTypeDifference;
+      }
+      return left.id - right.id;
     });
   }, [catalog, changedKeys, currentBanned, filters]);
 
