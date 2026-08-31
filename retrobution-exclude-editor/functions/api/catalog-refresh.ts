@@ -123,8 +123,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     return json({ error: result?.message ?? `GitHub returned ${response.status}` }, response.status);
   }
 
-  const title = `Refresh exclusion editor (${requestId})`;
-  const run = result.workflow_runs.find((candidate) => candidate.display_title === title);
+  const run = result.workflow_runs.find((candidate) =>
+    candidate.display_title.endsWith(`(${requestId})`),
+  );
   if (!run) return json({ requestId, status: "pending", conclusion: null, runUrl: null });
   return json({
     requestId,
