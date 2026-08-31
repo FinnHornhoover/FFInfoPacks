@@ -3,6 +3,8 @@ name: Create Release with Artifacts
 on:
   push:
     branches: [ main ]
+    paths:
+      - "config/build-config.yml"
 
 jobs:
   build-and-release:
