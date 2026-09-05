@@ -243,7 +243,7 @@ SOURCE_TYPE_ID_FIELD_MAP = {
     "CodeItem": "Code",
     "Vendor": "NPCTypeID",
     "Egg": "EggTypeID",
-    "Racing": "InstanceID",
+    "Racing": "EPID",
     "Mob": "MobTypeID",
     "Event": "EventID",
     "MissionReward": "MissionID",
@@ -2638,7 +2638,7 @@ def construct_valid_id_sets(sources: dict) -> None:
             return source_obj["Source"]["EggTypeID"] in sources["valid_egg_types"]
 
         if source_obj["SourceType"] == "Racing":
-            return source_obj["Source"]["InstanceID"] in sources["valid_instances"]
+            return source_obj["Source"]["EPID"] in sources["valid_infected_zones"]
 
         if source_obj["SourceType"] == "Mob":
             return source_obj["Source"]["MobTypeID"] in sources["valid_mob_types"]
@@ -2784,6 +2784,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         },
         "infected_zone_info": {
             "ID": "ID",
+            "InstanceID": "Instance ID",
             "Name": "Name",
             "AreaZone": "Area",
             "ZoneX": "X Zone",
@@ -2799,7 +2800,6 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         },
         "instance_info": {
             "ID": "ID",
-            "InstanceID": "Instance ID",
             "EPID": "Infected Zone ID",
             "Name": "Name",
             "AreaZone": "Area",
