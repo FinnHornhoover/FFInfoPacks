@@ -1571,6 +1571,7 @@ def construct_ep_instance_data(sources: dict) -> None:
 
         sources["infected_zone_info"][epid] = {
             "ID": epid,
+            "InstanceID": instance_obj["ID"],
             "Name": instance_obj["Name"],
             "ZoneX": instance_obj["ZoneX"],
             "ZoneY": instance_obj["ZoneY"],
@@ -1933,7 +1934,8 @@ def construct_racing_source_data(sources: dict) -> None:
                             "Z": npc_obj["Z"],
                             "NPCInstanceID": WORLD_INSTANCE_ID,
                             "NPCInstanceName": "World",
-                            "InstanceID": ep_obj["ID"],
+                            "EPID": ep_obj["ID"],
+                            "InstanceID": ep_obj["InstanceID"],
                             "InstanceName": ep_obj["Name"],
                             "AreaZone": area_tag,
                             "RequiredStars": star_count,
@@ -2797,6 +2799,7 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         },
         "instance_info": {
             "ID": "ID",
+            "InstanceID": "Instance ID",
             "EPID": "Infected Zone ID",
             "Name": "Name",
             "AreaZone": "Area",
