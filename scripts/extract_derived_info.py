@@ -1589,6 +1589,7 @@ def construct_ep_instance_data(sources: dict) -> None:
             "FMRewardFunction": "floor((1 + exp({ScaleFactor} - 1) * {PodFactor} * PodsCollected) / {TotalPods})".format(
                 **racing_obj,
             ),
+            "RankScores": racing_obj["RankScores"],
             "StarsToItemRewards": {
                 5 - i: {
                     "ItemTypeID": 9,
