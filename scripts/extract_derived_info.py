@@ -240,6 +240,7 @@ TRANSPORTATION_MOVE_TYPES = [
     "Slider",
 ]
 SOURCE_TYPE_ID_FIELD_MAP = {
+    "CharacterCreation": "GenderID",
     "CodeItem": "Code",
     "Vendor": "NPCTypeID",
     "Egg": "EggTypeID",
@@ -250,6 +251,7 @@ SOURCE_TYPE_ID_FIELD_MAP = {
     "MissionRewardCrate": "MissionID",
 }
 SOURCE_TYPE_NAME_FIELD_MAP = {
+    "CharacterCreation": "Gender",
     "Vendor": "NPCName",
     "Egg": "EggName",
     "Racing": "InstanceName",
@@ -1605,6 +1607,39 @@ def construct_ep_instance_data(sources: dict) -> None:
         }
 
 
+def construct_character_creation_item_data(sources: dict) -> None:
+    sources["character_creation_item_info"] = {}
+
+    creation_item_data_list = sources["xdt"]["m_pCreationItemTable"]["m_pCreationItemData"]
+    creation_item_fields = {
+        0: {"m_iWeapon": 0},
+        1: {"m_iShirtM": 1, "m_iPantsM": 2, "m_iShoesM": 3},
+        2: {"m_iShirtF": 1, "m_iPantsF": 2, "m_iShoesF": 3},
+    }
+
+    for gender_id, item_fields in creation_item_fields.items():
+        sources["character_creation_item_info"][gender_id] = {
+            "GenderID": gender_id,
+            "Gender": GENDERS[gender_id],
+            "Items": {},
+        }
+
+        for creation_item_obj in creation_item_data_list[1:]:
+            for field, item_type_id in item_fields.items():
+                item_id = creation_item_obj.get(field, 0)
+                item_str_id = f"{item_type_id:02d}{SEP}{item_id:04d}"
+
+                if item_id == 0 or item_str_id not in sources["item_info"]:
+                    continue
+
+                item_obj = sources["item_info"][item_str_id]
+
+                if item_obj["ContentLevel"] != 1 or item_obj["RarityID"] != 1:
+                    continue
+
+                sources["character_creation_item_info"][gender_id]["Items"][item_str_id] = item_obj
+
+
 def construct_code_item_data(sources: dict) -> None:
     sources["code_item_info"] = {}
 
@@ -1868,6 +1903,17 @@ def construct_mob_instance_region_grouped_data(sources: dict) -> None:
             mob_id = mob_obj["TypeID"]
             instance_id = mob_obj["InstanceID"]
             sources["mob_instance_region_grouped_info"][mob_id][instance_id][area_tag].append(mob_obj)
+
+
+def construct_character_creation_item_source_data(sources: dict) -> None:
+    sources["character_creation_item_source_info"] = defaultdict(list)
+
+    for creation_item_obj in sources["character_creation_item_info"].values():
+        for item_str_id in creation_item_obj["Items"]:
+            sources["character_creation_item_source_info"][item_str_id].append({
+                "GenderID": creation_item_obj["GenderID"],
+                "Gender": creation_item_obj["Gender"],
+            })
 
 
 def construct_code_item_source_data(sources: dict) -> None:
@@ -2296,6 +2342,13 @@ def construct_item_source_data(sources: dict) -> None:
         item_name = item_obj["Name"]
         item_tag = f"{item_str_id}{SEP}{item_name}"
 
+        # character creation item source
+        for creation_item_obj in sources["character_creation_item_source_info"].get(item_str_id, []):
+            sources["item_source_info"][item_tag].append({
+                "SourceType": "CharacterCreation",
+                "Source": creation_item_obj,
+            })
+
         # code item source
         for code_item_obj in sources["code_item_source_info"].get(item_str_id, []):
             sources["item_source_info"][item_tag].append({
@@ -2628,7 +2681,7 @@ def construct_valid_id_sets(sources: dict) -> None:
 
     # items that are valid are those that are obtainable by at least one source
     def source_valid(source_obj: dict) -> bool:
-        if source_obj["SourceType"] in ["CodeItem", "Event"]:
+        if source_obj["SourceType"] in ["CharacterCreation", "CodeItem", "Event"]:
             return True
 
         if source_obj["SourceType"] == "Vendor":
@@ -2696,6 +2749,7 @@ def export_json_source_info(out_info_dir: Path, sources: dict) -> None:
         "vendor_info",
         "infected_zone_info",
         "code_item_info",
+        "character_creation_item_info",
         "transportation_info",
         "combination_info",
         "item_source_info",
@@ -2761,6 +2815,11 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
         },
         "code_item_info": {
             "Code": "Code",
+            "Items": "Items",
+        },
+        "character_creation_item_info": {
+            "GenderID": "Gender ID",
+            "Gender": "Gender",
             "Items": "Items",
         },
         "egg_info": {
@@ -2927,6 +2986,9 @@ def export_csv_source_info(out_info_dir: Path, sources: dict) -> None:
             ),
         },
         "code_item_info": {
+            "Items": lambda obj: "\n".join(map(short_item_str, obj["Items"].values())),
+        },
+        "character_creation_item_info": {
             "Items": lambda obj: "\n".join(map(short_item_str, obj["Items"].values())),
         },
         "egg_info": {
@@ -3282,11 +3344,13 @@ def extract_derived_info(
     construct_vendor_data(sources)
     construct_ep_instance_data(sources)
     construct_code_item_data(sources)
+    construct_character_creation_item_data(sources)
     construct_combination_data(sources)
     construct_egg_instance_region_grouped_data(sources)
     construct_npc_instance_region_grouped_data(sources)
     construct_mob_instance_region_grouped_data(sources)
     construct_code_item_source_data(sources)
+    construct_character_creation_item_source_data(sources)
     construct_vendor_source_data(sources)
     construct_racing_source_data(sources)
     construct_mob_event_source_data(sources)
