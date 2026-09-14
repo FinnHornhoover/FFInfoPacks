@@ -661,6 +661,7 @@ transportation:
           values: step_item_icon_data.ids
       map:
         - key: <item_icon_file>
+          register_usages_by: <index>
     exclude:
       from: <icon_dir>
   step_item_mesh_data:
