@@ -2018,7 +2018,7 @@ def construct_mob_event_source_data(sources: dict) -> None:
 
         for md_id in md_refs:
             for mob_event_name, mob_event_id in references.get(("MobDrops", md_id), set()):
-                if mob_event_name in ["Mobs", "Events"]:
+                if mob_event_name == "Mobs" or (mob_event_name == "Events" and not sources["is_retrobution"]):
                     mob_event_refs.append((mob_event_name, mob_event_id, md_id))
 
         for mob_event_name, mob_event_id, md_id in mob_event_refs:
