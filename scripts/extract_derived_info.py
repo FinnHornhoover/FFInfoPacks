@@ -20,6 +20,7 @@ SEP = "::"
 WORLD_INSTANCE_ID = 0
 NPC_ID_OFFSET = 1
 MOB_ID_OFFSET = 10000
+MOB_GROUP_ID_OFFSET_RETROBUTION = 20000
 MOB_GROUP_ID_OFFSET = 30000
 MOB_SPECIAL_ID_OFFSET = 40000
 NPC_SPECIAL_ID_OFFSET = 50000
@@ -857,7 +858,7 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
         sources["npc_mob_info"][npc_type_id][str(npc_id)] = sources["npc_info"][npc_type_id][str(npc_id)]
 
     for mob_category in ["mobs", "groups"]:
-        offset = MOB_ID_OFFSET if mob_category == "mobs" else MOB_GROUP_ID_OFFSET
+        offset = MOB_ID_OFFSET if mob_category == "mobs" else (MOB_GROUP_ID_OFFSET_RETROBUTION if sources["is_retrobution"] else MOB_GROUP_ID_OFFSET)
 
         for mob_str_key, mob_obj in sources["mobs"][mob_category].items():
             mob_id = int(mob_str_key) + offset
