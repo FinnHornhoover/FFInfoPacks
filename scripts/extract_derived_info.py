@@ -956,6 +956,48 @@ def construct_npc_mob_info_data(sources: dict[str, dict]) -> None:
         }
         sources["npc_mob_info"][mob_type_id][str(mob_id)] = sources["mob_info"][mob_type_id][str(mob_id)]
 
+    # add npc and mob routes
+    # we want to do this here due to extra npcs and mobs
+    id_path_map = {}
+    type_path_map = {}
+    for path in sources["paths"]["npc"].values():
+        # first appearance wins as per server behavior
+        for npc_mob_id in path.get("aNPCIDs", []):
+            if npc_mob_id not in id_path_map:
+                id_path_map[npc_mob_id] = path
+        for npc_mob_type_id in path.get("aNPCTypes", []):
+            if npc_mob_type_id not in type_path_map:
+                type_path_map[npc_mob_type_id] = path
+
+    for spawns in sources["npc_mob_info"].values():
+        for spawn in spawns.values():
+            spawn["Route"] = []
+
+            try:
+                npc_mob_id = int(spawn["ID"])
+            except ValueError:
+                npc_mob_id = -1
+            npc_mob_type_id = spawn["TypeID"]
+
+            if npc_mob_id in id_path_map:
+                path = id_path_map[npc_mob_id]
+            elif npc_mob_type_id in type_path_map:
+                path = type_path_map[npc_mob_type_id]
+            else:
+                continue
+
+            is_relative = path.get("bRelative", False)
+            for point in path.get("aPoints", []):
+                x = point["iX"] + (spawn["X"] if is_relative else 0)
+                y = point["iY"] + (spawn["Y"] if is_relative else 0)
+                z = point["iZ"] + (spawn["Z"] if is_relative else 0)
+                spawn["Route"].append({
+                    "X": x,
+                    "Y": y,
+                    "Z": z,
+                    "AreaZone": to_area_tag(locate_coordinates(sources["area_info"], x, y)),
+                })
+
 
 def construct_egg_data(sources: dict[str, dict]) -> None:
     sources["egg_type_info"] = {}
