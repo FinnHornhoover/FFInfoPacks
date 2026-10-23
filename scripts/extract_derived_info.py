@@ -1244,10 +1244,8 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             task_reward_id = task_obj["m_iSUReward"]
             task_end_outgoing_task_obj = mission_task_dict[task_end_outgoing_task_id] if task_end_outgoing_task_id in mission_task_dict else mission_task_dict[0]
             task_fail_outgoing_task_obj = mission_task_dict[task_fail_outgoing_task_id] if task_fail_outgoing_task_id in mission_task_dict else mission_task_dict[0]
-            # the client does not consume SU/F journal IDs
+            # the client does not consume SU/F journal IDs, task owns the journal data
             task_start_journal_obj = mission_journal_data_list[task_start_journal_id] if 0 < task_start_journal_id and task_start_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
-            task_end_journal_obj = task_start_journal_obj
-            task_fail_journal_obj = task_start_journal_obj
 
             if task_start_npc_id > 0 and task_state != "UnreachableTask":
                 mission_info_obj["MissionStartNPCID"] = task_start_npc_id
@@ -1306,6 +1304,14 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "WaypointNPCID": task_waypoint_npc_id,
                 "WaypointNPCName": sources["npc_mob_type_info"][task_waypoint_npc_id]["Name"] if task_waypoint_npc_id in sources["npc_mob_type_info"] else "",
                 "WaypointNPCIcon": sources["npc_mob_type_info"][task_waypoint_npc_id]["Icon"] if task_waypoint_npc_id in sources["npc_mob_type_info"] else "",
+                # journal fields belong to the task, not to start/end/fail messages, the client selects them by journal UI mode
+                "Journal": {
+                    "JournalMissionSummary": mission_string_list[task_start_journal_obj["m_iMissionSummary"]]["m_pstrNameString"],
+                    "JournalDetailedMissionDescription": mission_string_list[task_start_journal_obj["m_iDetaileMissionDesc"]]["m_pstrNameString"],
+                    "JournalMissionCompleteSummary": mission_string_list[task_start_journal_obj["m_iMissionCompleteSummary"]]["m_pstrNameString"],
+                    "JournalDetailedMissionCompleteDescription": mission_string_list[task_start_journal_obj["m_iDetaileMissionCompleteSummary"]]["m_pstrNameString"],
+                    "JournalDetailedTaskDescription": mission_string_list[task_start_journal_obj["m_iDetailedTaskDesc"]]["m_pstrNameString"],
+                },
                 "MessageOnStart": {
                     "TypeID": task_obj["m_iSTMessageType"],
                     "Type": MISSION_MESSAGE_TYPES.get(task_obj["m_iSTMessageType"], "None"),
@@ -1319,11 +1325,6 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     "DialogBubbleNPCID": task_start_dialog_bubble_npc_id,
                     "DialogBubbleNPCName": sources["npc_mob_type_info"][task_start_dialog_bubble_npc_id]["Name"] if task_start_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
                     "DialogBubbleNPCIcon": sources["npc_mob_type_info"][task_start_dialog_bubble_npc_id]["Icon"] if task_start_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
-                    "JournalMissionSummary": mission_string_list[task_start_journal_obj["m_iMissionSummary"]]["m_pstrNameString"],
-                    "JournalDetailedMissionDescription": mission_string_list[task_start_journal_obj["m_iDetaileMissionDesc"]]["m_pstrNameString"],
-                    "JournalMissionCompleteSummary": mission_string_list[task_start_journal_obj["m_iMissionCompleteSummary"]]["m_pstrNameString"],
-                    "JournalDetailedMissionCompleteDescription": mission_string_list[task_start_journal_obj["m_iDetaileMissionCompleteSummary"]]["m_pstrNameString"],
-                    "JournalDetailedTaskDescription": mission_string_list[task_start_journal_obj["m_iDetailedTaskDesc"]]["m_pstrNameString"],
                 },
                 "MessageOnEnd": {
                     "TypeID": task_obj["m_iSUMessageType"],
@@ -1338,11 +1339,6 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     "DialogBubbleNPCID": task_end_dialog_bubble_npc_id,
                     "DialogBubbleNPCName": sources["npc_mob_type_info"][task_end_dialog_bubble_npc_id]["Name"] if task_end_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
                     "DialogBubbleNPCIcon": sources["npc_mob_type_info"][task_end_dialog_bubble_npc_id]["Icon"] if task_end_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
-                    "JournalMissionSummary": mission_string_list[task_end_journal_obj["m_iMissionSummary"]]["m_pstrNameString"],
-                    "JournalDetailedMissionDescription": mission_string_list[task_end_journal_obj["m_iDetaileMissionDesc"]]["m_pstrNameString"],
-                    "JournalMissionCompleteSummary": mission_string_list[task_end_journal_obj["m_iMissionCompleteSummary"]]["m_pstrNameString"],
-                    "JournalDetailedMissionCompleteDescription": mission_string_list[task_end_journal_obj["m_iDetaileMissionCompleteSummary"]]["m_pstrNameString"],
-                    "JournalDetailedTaskDescription": mission_string_list[task_end_journal_obj["m_iDetailedTaskDesc"]]["m_pstrNameString"],
                 },
                 "MessageOnFail": {
                     "TypeID": task_obj["m_iFMessageType"],
@@ -1357,11 +1353,6 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     "DialogBubbleNPCID": task_fail_dialog_bubble_npc_id,
                     "DialogBubbleNPCName": sources["npc_mob_type_info"][task_fail_dialog_bubble_npc_id]["Name"] if task_fail_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
                     "DialogBubbleNPCIcon": sources["npc_mob_type_info"][task_fail_dialog_bubble_npc_id]["Icon"] if task_fail_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
-                    "JournalMissionSummary": mission_string_list[task_fail_journal_obj["m_iMissionSummary"]]["m_pstrNameString"],
-                    "JournalDetailedMissionDescription": mission_string_list[task_fail_journal_obj["m_iDetaileMissionDesc"]]["m_pstrNameString"],
-                    "JournalMissionCompleteSummary": mission_string_list[task_fail_journal_obj["m_iMissionCompleteSummary"]]["m_pstrNameString"],
-                    "JournalDetailedMissionCompleteDescription": mission_string_list[task_fail_journal_obj["m_iDetaileMissionCompleteSummary"]]["m_pstrNameString"],
-                    "JournalDetailedTaskDescription": mission_string_list[task_fail_journal_obj["m_iDetailedTaskDesc"]]["m_pstrNameString"],
                 },
                 "OnEndNextTaskID": task_end_outgoing_task_id,
                 "OnEndTaskObjective": mission_string_list[task_end_outgoing_task_obj["m_iHCurrentObjective"]]["m_pstrNameString"],
