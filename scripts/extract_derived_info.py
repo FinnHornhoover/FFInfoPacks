@@ -1223,8 +1223,6 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             task_escort_npc_id = task_obj["m_iCSUDEFNPCID"]
             task_waypoint_npc_id = task_obj["m_iSTGrantWayPoint"]
             task_start_journal_id = task_obj["m_iSTJournalIDAdd"]
-            task_end_journal_id = task_obj["m_iSUJournaliDAdd"]
-            task_fail_journal_id = task_obj["m_iFJournalIDAdd"]
             task_end_outgoing_task_id = task_obj["m_iSUOutgoingTask"]
             task_fail_outgoing_task_id = task_obj["m_iFOutgoingTask"]
             task_start_send_npc_id = task_obj["m_iSTMessageSendNPC"]
@@ -1246,9 +1244,10 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             task_reward_id = task_obj["m_iSUReward"]
             task_end_outgoing_task_obj = mission_task_dict[task_end_outgoing_task_id] if task_end_outgoing_task_id in mission_task_dict else mission_task_dict[0]
             task_fail_outgoing_task_obj = mission_task_dict[task_fail_outgoing_task_id] if task_fail_outgoing_task_id in mission_task_dict else mission_task_dict[0]
-            task_start_journal_obj = mission_journal_data_list[task_start_journal_id] if task_start_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
-            task_end_journal_obj = mission_journal_data_list[task_end_journal_id] if task_end_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
-            task_fail_journal_obj = mission_journal_data_list[task_fail_journal_id] if task_fail_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
+            # the client does not consume SU/F journal IDs
+            task_start_journal_obj = mission_journal_data_list[task_start_journal_id] if 0 < task_start_journal_id and task_start_journal_id < len(mission_journal_data_list) else mission_journal_data_list[0]
+            task_end_journal_obj = task_start_journal_obj
+            task_fail_journal_obj = task_start_journal_obj
 
             if task_start_npc_id > 0 and task_state != "UnreachableTask":
                 mission_info_obj["MissionStartNPCID"] = task_start_npc_id
