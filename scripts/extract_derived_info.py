@@ -261,9 +261,6 @@ SOURCE_TYPE_NAME_FIELD_MAP = {
     "MissionReward": "MissionName",
     "MissionRewardCrate": "MissionName",
 }
-WRONG_DIALOG_BUBBLE_IDS = {
-    21822: 12822,
-}
 
 
 def patch(base_obj: dict, patch_obj: dict) -> None:
@@ -1105,6 +1102,15 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
     mission_journal_data_list = mission_table_obj["m_pJournalData"]
     mission_reward_data_list = mission_table_obj["m_pRewardData"]
 
+    def dialog_bubble(text_id: int, npc_id: int) -> tuple[str, int]:
+        # match cnMissionManager.SetBubbleChat: invalid IDs are skipped, not
+        # repaired, and a bubble needs both a speaker and more than one character
+        if npc_id > 0 and 0 < text_id and text_id < len(mission_string_list):
+            text = mission_string_list[text_id]["m_pstrNameString"]
+            if len(text) > 1:
+                return text, npc_id
+        return "", 0
+
     npc_table_obj = sources["xdt"]["m_pNpcTable"]
     npc_data_list = npc_table_obj["m_pNpcData"]
     npc_string_list = npc_table_obj["m_pNpcStringData"]
@@ -1259,13 +1265,9 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 )
             }
 
-            # there are some wrong dialog bubble IDs in the data, so we need to handle them
-            if task_start_dialog_bubble_id in WRONG_DIALOG_BUBBLE_IDS:
-                task_start_dialog_bubble_id = WRONG_DIALOG_BUBBLE_IDS[task_start_dialog_bubble_id]
-            if task_end_dialog_bubble_id in WRONG_DIALOG_BUBBLE_IDS:
-                task_end_dialog_bubble_id = WRONG_DIALOG_BUBBLE_IDS[task_end_dialog_bubble_id]
-            if task_fail_dialog_bubble_id in WRONG_DIALOG_BUBBLE_IDS:
-                task_fail_dialog_bubble_id = WRONG_DIALOG_BUBBLE_IDS[task_fail_dialog_bubble_id]
+            task_start_bubble, task_start_dialog_bubble_npc_id = dialog_bubble(task_start_dialog_bubble_id, task_start_dialog_bubble_npc_id)
+            task_end_bubble, task_end_dialog_bubble_npc_id = dialog_bubble(task_end_dialog_bubble_id, task_end_dialog_bubble_npc_id)
+            task_fail_bubble, task_fail_dialog_bubble_npc_id = dialog_bubble(task_fail_dialog_bubble_id, task_fail_dialog_bubble_npc_id)
 
             mission_info_obj["Tasks"][task_id] = {
                 "ID": task_id,
@@ -1291,7 +1293,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     "SendNPCID": task_start_send_npc_id,
                     "SendNPCName": sources["npc_mob_type_info"][task_start_send_npc_id]["Name"] if task_start_send_npc_id in sources["npc_mob_type_info"] else "",
                     "SendNPCIcon": sources["npc_mob_type_info"][task_start_send_npc_id]["Icon"] if task_start_send_npc_id in sources["npc_mob_type_info"] else "",
-                    "DialogBubble": mission_string_list[task_start_dialog_bubble_id]["m_pstrNameString"],
+                    "DialogBubble": task_start_bubble,
                     "DialogBubbleNPCID": task_start_dialog_bubble_npc_id,
                     "DialogBubbleNPCName": sources["npc_mob_type_info"][task_start_dialog_bubble_npc_id]["Name"] if task_start_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
                     "DialogBubbleNPCIcon": sources["npc_mob_type_info"][task_start_dialog_bubble_npc_id]["Icon"] if task_start_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
@@ -1308,7 +1310,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     "SendNPCID": task_end_send_npc_id,
                     "SendNPCName": sources["npc_mob_type_info"][task_end_send_npc_id]["Name"] if task_end_send_npc_id in sources["npc_mob_type_info"] else "",
                     "SendNPCIcon": sources["npc_mob_type_info"][task_end_send_npc_id]["Icon"] if task_end_send_npc_id in sources["npc_mob_type_info"] else "",
-                    "DialogBubble": mission_string_list[task_end_dialog_bubble_id]["m_pstrNameString"],
+                    "DialogBubble": task_end_bubble,
                     "DialogBubbleNPCID": task_end_dialog_bubble_npc_id,
                     "DialogBubbleNPCName": sources["npc_mob_type_info"][task_end_dialog_bubble_npc_id]["Name"] if task_end_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
                     "DialogBubbleNPCIcon": sources["npc_mob_type_info"][task_end_dialog_bubble_npc_id]["Icon"] if task_end_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
@@ -1325,7 +1327,7 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                     "SendNPCID": task_fail_send_npc_id,
                     "SendNPCName": sources["npc_mob_type_info"][task_fail_send_npc_id]["Name"] if task_fail_send_npc_id in sources["npc_mob_type_info"] else "",
                     "SendNPCIcon": sources["npc_mob_type_info"][task_fail_send_npc_id]["Icon"] if task_fail_send_npc_id in sources["npc_mob_type_info"] else "",
-                    "DialogBubble": mission_string_list[task_fail_dialog_bubble_id]["m_pstrNameString"],
+                    "DialogBubble": task_fail_bubble,
                     "DialogBubbleNPCID": task_fail_dialog_bubble_npc_id,
                     "DialogBubbleNPCName": sources["npc_mob_type_info"][task_fail_dialog_bubble_npc_id]["Name"] if task_fail_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
                     "DialogBubbleNPCIcon": sources["npc_mob_type_info"][task_fail_dialog_bubble_npc_id]["Icon"] if task_fail_dialog_bubble_npc_id in sources["npc_mob_type_info"] else "",
