@@ -1111,6 +1111,20 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 return text, npc_id
         return "", 0
 
+    def popup_text(task: dict, message_type: int, text_id: int) -> str:
+        # cnMissionManager.SetMissionMessage only displays text for bit 2
+        if not message_type & 2 or task["m_iHMissionName"] <= 0 or text_id <= 0 or text_id >= len(mission_string_list):
+            return ""
+        text = mission_string_list[text_id]["m_pstrNameString"]
+        return text if len(text) > 1 else ""
+
+    def email_text(message_type: int, text_id: int) -> str:
+        # cnEmailSystemManager.AddEmail registers active-task emails only for start types 4/6
+        # unlike popups, email bodies have no minimum-length check
+        if message_type not in (4, 6) or text_id <= 0 or text_id >= len(mission_string_list):
+            return ""
+        return mission_string_list[text_id]["m_pstrNameString"]
+
     npc_table_obj = sources["xdt"]["m_pNpcTable"]
     npc_data_list = npc_table_obj["m_pNpcData"]
     npc_string_list = npc_table_obj["m_pNpcStringData"]
@@ -1216,6 +1230,13 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
             task_start_send_npc_id = task_obj["m_iSTMessageSendNPC"]
             task_end_send_npc_id = task_obj["m_iSUMessageSendNPC"]
             task_fail_send_npc_id = task_obj["m_iFMessageSendNPC"]
+            task_start_text = popup_text(task_obj, task_obj["m_iSTMessageType"], task_obj["m_iSTMessageTextID"])
+            task_end_text = popup_text(task_obj, task_obj["m_iSUMessageType"], task_obj["m_iSUMessagetextID"])
+            task_fail_text = popup_text(task_obj, task_obj["m_iFMessageType"], task_obj["m_iFMessageTextID"])
+            task_start_email_text = email_text(task_obj["m_iSTMessageType"], task_obj["m_iSTMessageTextID"])
+            task_start_send_npc_id = task_start_send_npc_id if task_start_text or task_obj["m_iSTMessageType"] in (4, 6) else 0
+            task_end_send_npc_id = task_end_send_npc_id if task_end_text else 0
+            task_fail_send_npc_id = task_fail_send_npc_id if task_fail_text else 0
             task_start_dialog_bubble_npc_id = task_obj["m_iSTDialogBubbleNPCID"]
             task_end_dialog_bubble_npc_id = task_obj["m_iSUDialogBubbleNPCID"]
             task_fail_dialog_bubble_npc_id = task_obj["m_iFDialogBubbleNPCID"]
@@ -1289,7 +1310,9 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "MessageOnStart": {
                     "TypeID": task_obj["m_iSTMessageType"],
                     "Type": MISSION_MESSAGE_TYPES.get(task_obj["m_iSTMessageType"], "None"),
-                    "Text": mission_string_list[task_obj["m_iSTMessageTextID"]]["m_pstrNameString"],
+                    "Text": task_start_text,
+                    "EmailText": task_start_email_text,
+                    "RawText": mission_string_list[task_obj["m_iSTMessageTextID"]]["m_pstrNameString"],
                     "SendNPCID": task_start_send_npc_id,
                     "SendNPCName": sources["npc_mob_type_info"][task_start_send_npc_id]["Name"] if task_start_send_npc_id in sources["npc_mob_type_info"] else "",
                     "SendNPCIcon": sources["npc_mob_type_info"][task_start_send_npc_id]["Icon"] if task_start_send_npc_id in sources["npc_mob_type_info"] else "",
@@ -1306,7 +1329,9 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "MessageOnEnd": {
                     "TypeID": task_obj["m_iSUMessageType"],
                     "Type": MISSION_MESSAGE_TYPES.get(task_obj["m_iSUMessageType"], "None"),
-                    "Text": mission_string_list[task_obj["m_iSUMessagetextID"]]["m_pstrNameString"],
+                    "Text": task_end_text,
+                    "EmailText": "",
+                    "RawText": mission_string_list[task_obj["m_iSUMessagetextID"]]["m_pstrNameString"],
                     "SendNPCID": task_end_send_npc_id,
                     "SendNPCName": sources["npc_mob_type_info"][task_end_send_npc_id]["Name"] if task_end_send_npc_id in sources["npc_mob_type_info"] else "",
                     "SendNPCIcon": sources["npc_mob_type_info"][task_end_send_npc_id]["Icon"] if task_end_send_npc_id in sources["npc_mob_type_info"] else "",
@@ -1323,7 +1348,9 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "MessageOnFail": {
                     "TypeID": task_obj["m_iFMessageType"],
                     "Type": MISSION_MESSAGE_TYPES.get(task_obj["m_iFMessageType"], "None"),
-                    "Text": mission_string_list[task_obj["m_iFMessageTextID"]]["m_pstrNameString"],
+                    "Text": task_fail_text,
+                    "EmailText": "",
+                    "RawText": mission_string_list[task_obj["m_iFMessageTextID"]]["m_pstrNameString"],
                     "SendNPCID": task_fail_send_npc_id,
                     "SendNPCName": sources["npc_mob_type_info"][task_fail_send_npc_id]["Name"] if task_fail_send_npc_id in sources["npc_mob_type_info"] else "",
                     "SendNPCIcon": sources["npc_mob_type_info"][task_fail_send_npc_id]["Icon"] if task_fail_send_npc_id in sources["npc_mob_type_info"] else "",
