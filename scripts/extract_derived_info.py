@@ -1341,6 +1341,20 @@ def construct_mission_data(sources: dict[str, dict]) -> None:
                 "OnEndTaskObjective": mission_string_list[task_end_outgoing_task_obj["m_iHCurrentObjective"]]["m_pstrNameString"],
                 "OnFailNextTaskID": task_fail_outgoing_task_id,
                 "OnFailTaskObjective": mission_string_list[task_fail_outgoing_task_obj["m_iHCurrentObjective"]]["m_pstrNameString"],
+                # completion checks item counts independently of monster kills
+                # this preserves delivery/collection requirements with no enemy ID
+                "QuestItemRequirements": {
+                    f"{item_id:04d}{SEP}{quest_item_string_list[quest_item_data_list[item_id]['m_iItemName']]['m_strName']}": {
+                        "QuestItemID": item_id,
+                        "QuestItem": quest_item_string_list[quest_item_data_list[item_id]["m_iItemName"]]["m_strName"],
+                        "QuestItemNeededCount": item_num_needed,
+                    }
+                    for item_id, item_num_needed in zip(
+                        task_obj["m_iCSUItemID"],
+                        task_obj["m_iCSUItemNumNeeded"],
+                    )
+                    if item_id > 0
+                },
                 "QuestItemMonsterRequirements": {
                     f"{mob_type_id:04d}{SEP}{npc_string_list[mob_type_id]['m_strName']}": {
                         "KillCount": num_to_kill,
