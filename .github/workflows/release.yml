@@ -78,6 +78,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  release-objects:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run release.yml --repo FinnHornhoover/FFObjectPacks
+        env:
+          GH_TOKEN: ${{ secrets.FFOBJECTPACKS_TOKEN }}
+
   upload-csv-files:
     needs: build-and-release
     runs-on: ubuntu-latest
