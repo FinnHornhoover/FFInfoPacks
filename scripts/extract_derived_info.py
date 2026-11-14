@@ -551,8 +551,7 @@ def construct_item_info_data(sources: dict[str, dict]) -> None:
             icon_obj = item_icon_list[icon_id] if icon_id < len(item_icon_list) else None
             str_obj = item_string_list[obj["m_iItemName"]]
             name = str_obj["m_strName"]
-            comment_key = "m_iComment" if i != 9 else "m_iChestDesc"
-            description = item_string_list[obj[comment_key]]["m_strComment"]
+            description = str_obj["m_strComment"]
 
             if i in [7, 9]:
                 rarity_id = 1
@@ -588,8 +587,6 @@ def construct_item_info_data(sources: dict[str, dict]) -> None:
             content_level = required_level
 
             if i == 9:
-                description = str_obj["m_strComment"]
-
                 try:
                     content_level = int(name.split("Lv")[0])
                 except:
